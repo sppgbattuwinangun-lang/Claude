@@ -265,6 +265,62 @@ mingguan_rows.append([
     txt(""),
 ])
 
+# ----- AKUMULASI PER PERIODE 2-MINGGUAN -----
+# Periode 1 = Minggu 1 + 2  (rows MINGGUAN_DATA_START .. +1)
+# Periode 2 = Minggu 3 + 4  (rows MINGGUAN_DATA_START+2 .. +3)
+# Periode 3 = Minggu 5      (row MINGGUAN_DATA_START+4) [kalau jumlah minggu ganjil]
+# Jumlah periode = ceil(MAX_WEEKS / 2)
+mingguan_rows.append([txt("")])
+mingguan_rows.append([sec("AKUMULASI PER PERIODE (2-MINGGUAN)", 13)])
+mingguan_rows.append([
+    hdr("Periode"), hdr("Rentang Minggu"),
+    hdr("Pagu Pangan", 21), hdr("Aktual Pangan", 21), hdr("Selisih Pangan", 21),
+    hdr("Pagu Operasional", 20), hdr("Aktual Operasional", 20), hdr("Selisih Operasional", 20),
+    hdr("Total Pagu"), hdr("Total Aktual"), hdr("Surplus/Defisit"), hdr("Status Periode"),
+])
+PERIODE_DATA_START = len(mingguan_rows) + 1  # first data row for period table
+NUM_PERIODE = (MAX_WEEKS + 1) // 2  # ceil(5/2) = 3
+for p in range(1, NUM_PERIODE + 1):
+    w_first = (p - 1) * 2 + 1              # 1, 3, 5
+    w_last  = min(w_first + 1, MAX_WEEKS)  # 2, 4, 5
+    r_first = MINGGUAN_DATA_START + w_first - 1  # row of first week in period
+    r_last  = MINGGUAN_DATA_START + w_last - 1   # row of last week in period
+    r = PERIODE_DATA_START + p - 1               # current row in period table
+
+    # Rentang label: "Mg 1 - Mg 2" atau "Mg 5" jika tunggal
+    if w_first == w_last:
+        rentang_formula = '"Mg {w}"'.format(w=w_first)
+    else:
+        rentang_formula = '"Mg {wf} - Mg {wl}"'.format(wf=w_first, wl=w_last)
+
+    mingguan_rows.append([
+        # Periode label
+        txt("Periode {0}".format(p), 15),
+        # Rentang (string literal formula agar periode info jelas)
+        fx(rentang_formula, 15),
+        # Pagu Pangan: SUM(C{r_first}:C{r_last})
+        fx("SUM(C{rf}:C{rl})".format(rf=r_first, rl=r_last), 7),
+        # Aktual Pangan
+        fx("SUM(D{rf}:D{rl})".format(rf=r_first, rl=r_last), 7),
+        # Selisih Pangan = Pagu - Aktual
+        fx("C{r}-D{r}".format(r=r), 17),
+        # Pagu Operasional
+        fx("SUM(F{rf}:F{rl})".format(rf=r_first, rl=r_last), 7),
+        # Aktual Operasional
+        fx("SUM(G{rf}:G{rl})".format(rf=r_first, rl=r_last), 7),
+        # Selisih Operasional
+        fx("F{r}-G{r}".format(r=r), 17),
+        # Total Pagu = C + F
+        fx("C{r}+F{r}".format(r=r), 7),
+        # Total Aktual = D + G
+        fx("D{r}+G{r}".format(r=r), 7),
+        # Surplus/Defisit = Total Pagu - Total Aktual
+        fx("I{r}-J{r}".format(r=r), 17),
+        # Status Periode (dipakai conditional formatting)
+        fx('IF(J{r}=0,"",IF(K{r}>0,"SURPLUS",IF(K{r}<0,"DEFISIT","AMAN")))'.format(r=r), 29),
+    ])
+PERIODE_DATA_END = PERIODE_DATA_START + NUM_PERIODE - 1
+
 
 # =========================================================================
 # SHEET: DASHBOARD
@@ -570,6 +626,11 @@ def cf_status(range_ref):
             '<cfRule type="cellIs" dxfId="2" priority="3" operator="equal"><formula>"AMAN"</formula></cfRule>'
             '<cfRule type="cellIs" dxfId="3" priority="4" operator="equal"><formula>"BELUM"</formula></cfRule>'
             '</conditionalFormatting>').format(r=range_ref)
+
+
+def cf_status_multi(ranges):
+    """Apply status coloring ke beberapa range sekaligus."""
+    return "".join(cf_status(r) for r in ranges)
 
 
 # =========================================================================
@@ -1053,7 +1114,11 @@ def main():
     # Conditional formatting per sheet
     CF_RULES = {
         "Rekap Harian":  cf_status("N{s}:N{e}".format(s=REKAP_DATA_START, e=REKAP_DATA_END)),
-        "Rekap Mingguan":cf_status("L{s}:L{e}".format(s=MINGGUAN_DATA_START, e=MINGGUAN_DATA_END)),
+        # Dua range di Rekap Mingguan: status mingguan (kolom L) + status periode (kolom L juga, tapi di bawah)
+        "Rekap Mingguan": cf_status_multi([
+            "L{s}:L{e}".format(s=MINGGUAN_DATA_START, e=MINGGUAN_DATA_END),
+            "L{s}:L{e}".format(s=PERIODE_DATA_START, e=PERIODE_DATA_END),
+        ]),
     }
 
     with zipfile.ZipFile(OUTPUT, "w", zipfile.ZIP_DEFLATED) as z:
