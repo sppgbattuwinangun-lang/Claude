@@ -1,18 +1,16 @@
 """
 Generator Template Laporan Keuangan SPPG (Excel .xlsx)
-Professional edition - dengan Pagu Harian variabel, rekap mingguan, dan
-5 grafik profesional. Dibangun hanya dengan Python standard library.
+Professional edition v2 - tanpa sheet log transaksi.
+Aktual pangan & operasional diinput langsung di Rekap Harian.
 
 Sheet:
   1. Dashboard         - KPI cards professional & ringkasan
-  2. Rekap Harian      - Per-hari dengan pagu variabel & status
-  3. Rekap Mingguan    - Per-minggu (Minggu 1 s/d 5) dengan surplus/defisit
+  2. Rekap Harian      - Per-hari, aktual diinput langsung
+  3. Rekap Mingguan    - Per-minggu (Minggu 1 s/d 5)
   4. Grafik            - 5 chart profesional
   5. Pengaturan        - Master setting (dana, periode)
-  6. Pagu Harian       - Pagu per tanggal (editable, beda-beda)
-  7. Pengeluaran Pangan     - Log transaksi pangan
-  8. Pengeluaran Operasional - Log transaksi operasional
-  9. Kategori          - Referensi
+  6. Pagu Harian       - Pagu per tanggal (editable)
+  7. Kategori          - Referensi
 
 Output: Template_Keuangan.xlsx
 """
@@ -26,14 +24,13 @@ OUTPUT = "Template_Keuangan.xlsx"
 # =========================================================================
 # CONFIG
 # =========================================================================
-MAX_DAYS = 31        # baris di Rekap Harian & Pagu Harian
-MAX_WEEKS = 5        # minggu di Rekap Mingguan
+MAX_DAYS = 31
+MAX_WEEKS = 5
 
 
 # =========================================================================
 # CELL HELPERS (val, style_id, is_formula)
 # =========================================================================
-
 def c(v, s=0, f=False):
     return (v, s, f)
 
@@ -43,48 +40,21 @@ def cur(v, s=3): return c(v, s, False)
 def hdr(v, s=1): return c(v, s, False)
 def fx(f, s=3): return c(f, s, True)
 def dt(v, s=4): return c(v, s, False)
-def sec(v, s=13): return c(v, s, False)  # section header
+def sec(v, s=13): return c(v, s, False)
 
 
 # =========================================================================
-# STYLE INDEX (lihat STYLES_XML)
+# RANGE CONSTANTS (dihitung lebih dulu supaya formula konsisten)
 # =========================================================================
-# 0  default
-# 1  header (biru tua + putih)
-# 2  title besar
-# 3  currency IDR
-# 4  date
-# 5  subtitle
-# 6  percent
-# 7  total currency (bold, bg kuning)
-# 8  center wrap
-# 9  currency merah
-# 10 currency hijau
-# 11 integer center
-# 12 label bold italic
-# 13 section hijau muda
-# 14 currency bold
-# 15 center bold
-# 16 KPI big currency (bg kuning)
-# 17 selisih hijau (bg abu)
-# 18 selisih merah (bg abu)
-# 19 small italic gray
-# 20 header oranye
-# 21 header hijau tua
-# 22 KPI hero besar biru
-# 23 KPI hero besar hijau
-# 24 KPI hero besar merah
-# 25 KPI hero besar kuning
-# 26 status SURPLUS (hijau dengan bg)
-# 27 status DEFISIT (merah dengan bg)
-# 28 status AMAN (biru)
-# 29 center bold white
-# 30 label hero (abu kecil)
-# 31 subtitle italic abu
-# 32 section biru tua
-# 33 angka besar KPI
-# 34 section oranye
-# 35 currency bold hijau besar
+REKAP_DATA_START = 6
+REKAP_DATA_END   = REKAP_DATA_START + MAX_DAYS - 1   # row 36
+
+# Range yang dipakai di Dashboard, Grafik, dan Rekap Mingguan
+RKF = "'Rekap Harian'!$F${s}:$F${e}".format(s=REKAP_DATA_START, e=REKAP_DATA_END)  # Aktual Pangan
+RKI = "'Rekap Harian'!$I${s}:$I${e}".format(s=REKAP_DATA_START, e=REKAP_DATA_END)  # Aktual Operasional
+
+MINGGUAN_DATA_START = 4
+MINGGUAN_DATA_END = MINGGUAN_DATA_START + MAX_WEEKS - 1
 
 
 # =========================================================================
@@ -116,17 +86,17 @@ pengaturan_rows = [
     [txt("CATATAN:", 12)],
     [txt("- Edit hanya di kolom B pada baris yang bertanda <- edit", 19)],
     [txt("- Pagu per hari bisa berbeda-beda, diatur di sheet 'Pagu Harian'", 19)],
-    [txt("- Jika Pagu Harian kosong untuk tanggal tertentu, dipakai pagu default", 19)],
-    [txt("- Dashboard, Rekap Harian, & Grafik update otomatis", 19)],
+    [txt("- Isi aktual pangan & operasional langsung di sheet 'Rekap Harian'", 19)],
+    [txt("- Dashboard, Rekap Mingguan, & Grafik update otomatis", 19)],
 ]
 
 
 # =========================================================================
-# SHEET: PAGU HARIAN (pagu per tanggal, bisa beda-beda)
+# SHEET: PAGU HARIAN
 # =========================================================================
 pagu_rows = [
     [txt("PAGU HARIAN PENGELUARAN", 2)],
-    [txt("Set pagu per tanggal. Biarkan kosong -> pakai pagu default dari sheet Pengaturan", 31)],
+    [txt("Set pagu per tanggal. Biarkan default jika pagu hari itu sama dengan Pengaturan", 31)],
     [hdr("Tanggal"), hdr("Pagu Pangan (Rp)"), hdr("Pagu Operasional (Rp)"),
      hdr("Pagu Total (Rp)"), hdr("Keterangan")],
 ]
@@ -141,7 +111,6 @@ for i in range(MAX_DAYS):
         txt(""),
     ])
 PAGU_DATA_END = PAGU_DATA_START + MAX_DAYS - 1
-# Total
 pagu_rows.append([txt("")])
 pagu_rows.append([
     txt("TOTAL", 5),
@@ -153,109 +122,27 @@ pagu_rows.append([
 
 
 # =========================================================================
-# SHEET: PENGELUARAN PANGAN
-# =========================================================================
-pangan_rows = [
-    [txt("LOG PENGELUARAN BAHAN PANGAN", 2)],
-    [txt("Catat semua transaksi bahan pangan di sini", 31)],
-    [hdr("Tanggal"), hdr("Item / Bahan"), hdr("Kategori"),
-     hdr("Qty"), hdr("Satuan"), hdr("Harga Satuan (Rp)"),
-     hdr("Jumlah (Rp)"), hdr("Keterangan")],
-]
-contoh_pangan = [
-    ("2026-05-01", "Beras premium",   "Karbohidrat",    50, "kg",    15000, "Stok awal"),
-    ("2026-05-01", "Ayam potong",     "Protein Hewani", 20, "kg",    38000, "Menu hari 1"),
-    ("2026-05-02", "Sayur bayam",     "Sayuran",        15, "ikat",   3500, ""),
-    ("2026-05-02", "Telur ayam",      "Protein Hewani",  8, "kg",    28000, ""),
-    ("2026-05-03", "Ikan nila",       "Protein Hewani", 18, "kg",    32000, ""),
-    ("2026-05-03", "Wortel",          "Sayuran",        10, "kg",     8000, ""),
-    ("2026-05-04", "Tempe",           "Protein Nabati", 12, "kg",    12000, ""),
-    ("2026-05-04", "Minyak goreng",   "Bumbu",           5, "liter", 18000, ""),
-    ("2026-05-05", "Buah pisang",     "Buah",           20, "sisir", 15000, ""),
-    ("2026-05-05", "Bumbu dapur",     "Bumbu",           1, "paket",150000, "Bawang, cabe"),
-]
-for t, itm, kat, qty, sat, harga, ket in contoh_pangan:
-    pangan_rows.append([
-        dt(t), txt(itm), txt(kat), num(qty, 11), txt(sat), cur(harga, 3),
-        fx("D{r}*F{r}".format(r=len(pangan_rows) + 1), 9),
-        txt(ket),
-    ])
-PANGAN_DATA_START = 4
-for _ in range(110):
-    pangan_rows.append([txt(""), txt(""), txt(""), txt(""), txt(""), txt(""), txt(""), txt("")])
-PANGAN_LAST_DATA_ROW = len(pangan_rows)
-pangan_rows.append([txt("")])
-pangan_rows.append([
-    txt(""), txt(""), txt(""), txt(""), txt(""),
-    txt("TOTAL PENGELUARAN PANGAN", 5),
-    fx("SUM(G{s}:G{e})".format(s=PANGAN_DATA_START, e=PANGAN_LAST_DATA_ROW), 7),
-    txt(""),
-])
-PANGAN_TOTAL_ROW = len(pangan_rows)
-
-
-# =========================================================================
-# SHEET: PENGELUARAN OPERASIONAL
-# =========================================================================
-operasional_rows = [
-    [txt("LOG PENGELUARAN OPERASIONAL", 2)],
-    [txt("Catat semua biaya operasional non-bahan pangan di sini", 31)],
-    [hdr("Tanggal"), hdr("Deskripsi"), hdr("Kategori"),
-     hdr("Qty"), hdr("Satuan"), hdr("Harga Satuan (Rp)"),
-     hdr("Jumlah (Rp)"), hdr("Keterangan")],
-]
-contoh_op = [
-    ("2026-05-01", "Gas LPG 12kg",           "Bahan Bakar",   2,  "tabung", 185000, "Memasak"),
-    ("2026-05-02", "Gaji juru masak",         "Tenaga Kerja",  1,  "orang",  150000, "Harian"),
-    ("2026-05-02", "Listrik & air",           "Utilitas",      1,  "bulan",  450000, ""),
-    ("2026-05-03", "Sabun cuci & pembersih",  "Sanitasi",      5,  "pcs",     25000, ""),
-    ("2026-05-04", "Kemasan makan",           "Packaging",    200, "pcs",      1500, ""),
-    ("2026-05-05", "Transportasi distribusi", "Transportasi",  1,  "trip",   120000, ""),
-    ("2026-05-06", "Alat masak (spatula)",    "Peralatan",     3,  "pcs",     35000, ""),
-    ("2026-05-07", "Perawatan kompor",        "Pemeliharaan",  1,  "kali",   200000, ""),
-]
-for t, desc, kat, qty, sat, harga, ket in contoh_op:
-    operasional_rows.append([
-        dt(t), txt(desc), txt(kat), num(qty, 11), txt(sat), cur(harga, 3),
-        fx("D{r}*F{r}".format(r=len(operasional_rows) + 1), 9),
-        txt(ket),
-    ])
-OP_DATA_START = 4
-for _ in range(110):
-    operasional_rows.append([txt(""), txt(""), txt(""), txt(""), txt(""), txt(""), txt(""), txt("")])
-OP_LAST_DATA_ROW = len(operasional_rows)
-operasional_rows.append([txt("")])
-operasional_rows.append([
-    txt(""), txt(""), txt(""), txt(""), txt(""),
-    txt("TOTAL PENGELUARAN OPERASIONAL", 5),
-    fx("SUM(G{s}:G{e})".format(s=OP_DATA_START, e=OP_LAST_DATA_ROW), 7),
-    txt(""),
-])
-OP_TOTAL_ROW = len(operasional_rows)
-
-
-# =========================================================================
 # SHEET: REKAP HARIAN
 # =========================================================================
 # Kolom:
-#   A  No
-#   B  Tanggal
-#   C  Hari
-#   D  Minggu Ke
-#   E  Pagu Pangan (dari Pagu Harian, fallback ke default)
-#   F  Aktual Pangan
-#   G  Selisih Pangan (E-F)
-#   H  Pagu Operasional
-#   I  Aktual Operasional
-#   J  Selisih Operasional (H-I)
-#   K  Total Pagu
-#   L  Total Aktual
-#   M  Surplus/Defisit (K-L)
-#   N  Status (SURPLUS/DEFISIT/AMAN)
+#  A No | B Tgl | C Hari | D Minggu |
+#  E Pagu Pangan (auto) | F Aktual Pangan (INPUT) | G Selisih Pangan |
+#  H Pagu Operasional   | I Aktual Operasional (INPUT) | J Selisih Operasional |
+#  K Total Pagu | L Total Aktual | M Surplus/Defisit | N Status
+
+# Contoh data aktual (5 hari pertama) - biar demo langsung hidup
+# Format: (aktual_pangan, aktual_operasional)
+SAMPLE_AKTUAL = [
+    (1790000,  555000),   # Hari 1 - sedikit over pangan
+    (1650000,  600000),   # Hari 2 - surplus pangan, sedikit over op
+    (1980000,  700000),   # Hari 3 - over kedua-duanya
+    (1450000,  480000),   # Hari 4 - surplus
+    (2100000,  850000),   # Hari 5 - over pangan, over op
+]
 
 rekap_rows = [
     [txt("REKAP HARIAN PENGELUARAN", 2)],
-    [txt("Setiap hari akan dihitung otomatis: pagu, aktual, selisih, dan status surplus/defisit", 31)],
+    [txt("Input aktual pangan (kolom F) & operasional (kolom I) setiap hari. Sisanya otomatis.", 31)],
     [txt("Periode:", 12), fx('TEXT(Pengaturan!B3,"dd mmm yyyy")&" s/d "&TEXT(Pengaturan!B4,"dd mmm yyyy")', 15)],
     [txt("")],
     [hdr("No"), hdr("Tanggal"), hdr("Hari"), hdr("Mg Ke"),
@@ -263,37 +150,43 @@ rekap_rows = [
      hdr("Pagu Operasional", 20), hdr("Aktual Operasional", 20), hdr("Selisih Operasional", 20),
      hdr("Total Pagu"), hdr("Total Aktual"), hdr("Surplus/Defisit"), hdr("Status")],
 ]
-REKAP_DATA_START = 6
 for i in range(MAX_DAYS):
     r = REKAP_DATA_START + i
+    # Aktual pangan & operasional (direct input)
+    if i < len(SAMPLE_AKTUAL):
+        ap_val, ao_val = SAMPLE_AKTUAL[i]
+        aktual_pangan = cur(ap_val, 3)
+        aktual_op     = cur(ao_val, 3)
+    else:
+        aktual_pangan = txt("")
+        aktual_op     = txt("")
     rekap_rows.append([
         num(i + 1, 15),
         fx('IF(Pengaturan!$B$3+{i}>Pengaturan!$B$4,"",Pengaturan!$B$3+{i})'.format(i=i), 4),
         fx('IF(B{r}="","",TEXT(B{r},"dddd"))'.format(r=r), 15),
         fx('IF(B{r}="","",INT((B{r}-Pengaturan!$B$3)/7)+1)'.format(r=r), 15),
-        # Pagu Pangan (lookup dari Pagu Harian, fallback ke default)
+        # E: Pagu Pangan (lookup dari Pagu Harian, fallback ke default)
         fx("IFERROR(VLOOKUP(B{r},'Pagu Harian'!$A$4:$D$40,2,FALSE),Pengaturan!$B$13)".format(r=r), 3),
-        # Aktual Pangan
-        fx('IF(B{r}="",0,SUMIF(\'Pengeluaran Pangan\'!A:A,B{r},\'Pengeluaran Pangan\'!G:G))'.format(r=r), 3),
-        # Selisih Pangan
-        fx('IF(B{r}="",0,E{r}-F{r})'.format(r=r), 17),
-        # Pagu Operasional
+        # F: Aktual Pangan - DIRECT INPUT
+        aktual_pangan,
+        # G: Selisih Pangan
+        fx('IF(B{r}="",0,E{r}-IF(F{r}="",0,F{r}))'.format(r=r), 17),
+        # H: Pagu Operasional
         fx("IFERROR(VLOOKUP(B{r},'Pagu Harian'!$A$4:$D$40,3,FALSE),Pengaturan!$B$14)".format(r=r), 3),
-        # Aktual Operasional
-        fx('IF(B{r}="",0,SUMIF(\'Pengeluaran Operasional\'!A:A,B{r},\'Pengeluaran Operasional\'!G:G))'.format(r=r), 3),
-        # Selisih Operasional
-        fx('IF(B{r}="",0,H{r}-I{r})'.format(r=r), 17),
-        # Total Pagu
+        # I: Aktual Operasional - DIRECT INPUT
+        aktual_op,
+        # J: Selisih Operasional
+        fx('IF(B{r}="",0,H{r}-IF(I{r}="",0,I{r}))'.format(r=r), 17),
+        # K: Total Pagu
         fx('E{r}+H{r}'.format(r=r), 14),
-        # Total Aktual
-        fx('F{r}+I{r}'.format(r=r), 14),
-        # Surplus/Defisit
+        # L: Total Aktual
+        fx('IF(F{r}="",0,F{r})+IF(I{r}="",0,I{r})'.format(r=r), 14),
+        # M: Surplus/Defisit = Pagu - Aktual (positif = surplus/hemat)
         fx('K{r}-L{r}'.format(r=r), 17),
-        # Status
-        fx('IF(B{r}="","",IF(M{r}>0,"SURPLUS",IF(M{r}<0,"DEFISIT","AMAN")))'.format(r=r), 26),
+        # N: Status (pakai conditional formatting untuk warna)
+        fx('IF(B{r}="","",IF(AND(F{r}="",I{r}=""),"BELUM",IF(M{r}>0,"SURPLUS",IF(M{r}<0,"DEFISIT","AMAN"))))'.format(r=r), 29),
     ])
-REKAP_DATA_END = REKAP_DATA_START + MAX_DAYS - 1
-# Total & rata-rata
+
 rekap_rows.append([txt("")])
 rekap_rows.append([
     txt(""), txt("TOTAL", 5), txt(""), txt(""),
@@ -311,13 +204,13 @@ rekap_rows.append([
 rekap_rows.append([
     txt(""), txt("RATA-RATA/HARI", 5), txt(""), txt(""),
     fx('IFERROR(AVERAGEIF(B{s}:B{e},"<>",E{s}:E{e}),0)'.format(s=REKAP_DATA_START, e=REKAP_DATA_END), 7),
-    fx('IFERROR(AVERAGEIF(B{s}:B{e},"<>",F{s}:F{e}),0)'.format(s=REKAP_DATA_START, e=REKAP_DATA_END), 7),
+    fx('IFERROR(AVERAGEIF(F{s}:F{e},">0"),0)'.format(s=REKAP_DATA_START, e=REKAP_DATA_END), 7),
     fx('IFERROR(AVERAGEIF(B{s}:B{e},"<>",G{s}:G{e}),0)'.format(s=REKAP_DATA_START, e=REKAP_DATA_END), 7),
     fx('IFERROR(AVERAGEIF(B{s}:B{e},"<>",H{s}:H{e}),0)'.format(s=REKAP_DATA_START, e=REKAP_DATA_END), 7),
-    fx('IFERROR(AVERAGEIF(B{s}:B{e},"<>",I{s}:I{e}),0)'.format(s=REKAP_DATA_START, e=REKAP_DATA_END), 7),
+    fx('IFERROR(AVERAGEIF(I{s}:I{e},">0"),0)'.format(s=REKAP_DATA_START, e=REKAP_DATA_END), 7),
     fx('IFERROR(AVERAGEIF(B{s}:B{e},"<>",J{s}:J{e}),0)'.format(s=REKAP_DATA_START, e=REKAP_DATA_END), 7),
     fx('IFERROR(AVERAGEIF(B{s}:B{e},"<>",K{s}:K{e}),0)'.format(s=REKAP_DATA_START, e=REKAP_DATA_END), 7),
-    fx('IFERROR(AVERAGEIF(B{s}:B{e},"<>",L{s}:L{e}),0)'.format(s=REKAP_DATA_START, e=REKAP_DATA_END), 7),
+    fx('IFERROR(AVERAGEIF(L{s}:L{e},">0"),0)'.format(s=REKAP_DATA_START, e=REKAP_DATA_END), 7),
     fx('IFERROR(AVERAGEIF(B{s}:B{e},"<>",M{s}:M{e}),0)'.format(s=REKAP_DATA_START, e=REKAP_DATA_END), 7),
     txt(""),
 ])
@@ -326,9 +219,6 @@ rekap_rows.append([
 # =========================================================================
 # SHEET: REKAP MINGGUAN
 # =========================================================================
-# Minggu 1: hari 1-7, Minggu 2: 8-14, dst.
-# Untuk setiap minggu: SUMIF ke Rekap Harian!D (kolom minggu ke)
-
 mingguan_rows = [
     [txt("REKAP MINGGUAN PENGELUARAN", 2)],
     [txt("Agregasi mingguan otomatis. Surplus = hemat, Defisit = boros", 31)],
@@ -337,17 +227,16 @@ mingguan_rows = [
      hdr("Pagu Operasional", 20), hdr("Aktual Operasional", 20), hdr("Selisih Operasional", 20),
      hdr("Total Pagu"), hdr("Total Aktual"), hdr("Surplus/Defisit"), hdr("Status")],
 ]
-MINGGUAN_DATA_START = 4
 for w in range(1, MAX_WEEKS + 1):
     r = MINGGUAN_DATA_START + w - 1
-    start_offset = (w - 1) * 7
-    end_offset = w * 7 - 1
+    s_off = (w - 1) * 7
+    e_off = w * 7 - 1
     mingguan_rows.append([
         num(w, 15),
         fx(
             'IF(Pengaturan!$B$3+{s}>Pengaturan!$B$4,"",'
             'TEXT(Pengaturan!$B$3+{s},"dd mmm")&" - "&'
-            'TEXT(MIN(Pengaturan!$B$3+{e},Pengaturan!$B$4),"dd mmm"))'.format(s=start_offset, e=end_offset),
+            'TEXT(MIN(Pengaturan!$B$3+{e},Pengaturan!$B$4),"dd mmm"))'.format(s=s_off, e=e_off),
             15
         ),
         fx("SUMIF('Rekap Harian'!$D${s}:$D${e},A{r},'Rekap Harian'!$E${s}:$E${e})".format(s=REKAP_DATA_START, e=REKAP_DATA_END, r=r), 3),
@@ -359,9 +248,8 @@ for w in range(1, MAX_WEEKS + 1):
         fx("C{r}+F{r}".format(r=r), 14),
         fx("D{r}+G{r}".format(r=r), 14),
         fx("I{r}-J{r}".format(r=r), 17),
-        fx('IF(I{r}=0,"",IF(K{r}>0,"SURPLUS",IF(K{r}<0,"DEFISIT","AMAN")))'.format(r=r), 26),
+        fx('IF(I{r}=0,"",IF(K{r}>0,"SURPLUS",IF(K{r}<0,"DEFISIT","AMAN")))'.format(r=r), 29),
     ])
-MINGGUAN_DATA_END = MINGGUAN_DATA_START + MAX_WEEKS - 1
 mingguan_rows.append([txt("")])
 mingguan_rows.append([
     txt("TOTAL", 5), txt("", 5),
@@ -381,120 +269,100 @@ mingguan_rows.append([
 # =========================================================================
 # SHEET: DASHBOARD
 # =========================================================================
-# Layout (row number):
-#  1  TITLE
-#  2  subtitle
-#  3  periode
-#  4  -
-#  5  HERO KPI BAR (4 cards) -- label
-#  6  HERO KPI BAR (4 cards) -- values
-#  7  -
-#  8  SECTION A. PENGELUARAN BAHAN PANGAN
-# (rows 9-17)
-# 18  SECTION B. PENGELUARAN OPERASIONAL
-# (rows 19-27)
-# 28  SECTION C. RINGKASAN TOTAL
-# (rows 29-37)
-# 38  -
-# 39  SECTION D. ANALISIS HARIAN & MINGGUAN
-# (rows 40-48)
-
 dashboard_rows = [
     [txt("DASHBOARD LAPORAN KEUANGAN", 2)],
     [txt("SPPG Battuwinangun - Program Pemenuhan Gizi", 31)],
     [txt("Periode:", 12), fx('TEXT(Pengaturan!B3,"dd mmm yyyy")&" s/d "&TEXT(Pengaturan!B4,"dd mmm yyyy")', 15)],
     [txt("")],
 
-    # HERO KPI CARDS (row 5 label, row 6 value) - 4 kolom
+    # HERO KPI CARDS - 4 kolom
     [txt("TOTAL DANA ANGGARAN", 30), txt("TOTAL DIPAKAI", 30), txt("TOTAL SISA DANA", 30), txt("% PENYERAPAN", 30)],
     [fx("Pengaturan!B10", 22),
-     fx("'Pengeluaran Pangan'!G{p}+'Pengeluaran Operasional'!G{o}".format(p=PANGAN_TOTAL_ROW, o=OP_TOTAL_ROW), 24),
+     fx("SUM({f})+SUM({i})".format(f=RKF, i=RKI), 24),
      fx("A6-B6", 23),
      fx("IF(A6=0,0,B6/A6)", 25)],
     [txt("")],                                                                                                       # row 7
 
     # A. PANGAN
     [hdr("A. PENGELUARAN BAHAN PANGAN", 21)],                                                                        # row 8
-    [txt("Rata-Rata Pengeluaran Bahan Pangan / Hari", 12),
-     fx("IFERROR('Pengeluaran Pangan'!G{p}/Pengaturan!B5,0)".format(p=PANGAN_TOTAL_ROW), 16)],                      # row 9
+    [txt("Rata-Rata Pengeluaran Bahan Pangan / Hari", 12), fx("IFERROR(B14/Pengaturan!B5,0)", 16)],                  # row 9
     [txt("Pengeluaran Bahan Pangan Seharusnya / Hari", 12), fx("Pengaturan!B13", 16)],                               # row 10
     [txt("Selisih Pengeluaran Bahan Pangan / Hari", 12), fx("B10-B9", 17), txt("(positif = hemat)", 19)],           # row 11
     [txt("")],                                                                                                       # row 12
     [txt("Dana Total Bahan Pangan", 12),     fx("Pengaturan!B8", 16)],                                              # row 13
-    [txt("Penggunaan Dana Pangan", 12),      fx("'Pengeluaran Pangan'!G{p}".format(p=PANGAN_TOTAL_ROW), 9)],        # row 14
+    [txt("Penggunaan Dana Pangan", 12),      fx("SUM({f})".format(f=RKF), 9)],                                      # row 14
     [txt("Sisa Dana Pangan", 12),            fx("B13-B14", 17)],                                                    # row 15
     [txt("% Penggunaan Dana Pangan", 12),    fx("IF(B13=0,0,B14/B13)", 6)],                                         # row 16
     [txt("")],                                                                                                       # row 17
 
     # B. OPERASIONAL
     [hdr("B. PENGELUARAN OPERASIONAL", 20)],                                                                         # row 18
-    [txt("Rata-Rata Pengeluaran Operasional / Hari", 12),
-     fx("IFERROR('Pengeluaran Operasional'!G{o}/Pengaturan!B5,0)".format(o=OP_TOTAL_ROW), 16)],                     # row 19
+    [txt("Rata-Rata Pengeluaran Operasional / Hari", 12), fx("IFERROR(B24/Pengaturan!B5,0)", 16)],                   # row 19
     [txt("Pengeluaran Operasional Seharusnya / Hari", 12), fx("Pengaturan!B14", 16)],                                # row 20
     [txt("Selisih Pengeluaran Operasional / Hari", 12), fx("B20-B19", 17), txt("(positif = hemat)", 19)],           # row 21
     [txt("")],                                                                                                       # row 22
     [txt("Dana Total Operasional", 12),      fx("Pengaturan!B9", 16)],                                              # row 23
-    [txt("Penggunaan Dana Operasional", 12), fx("'Pengeluaran Operasional'!G{o}".format(o=OP_TOTAL_ROW), 9)],       # row 24
-    [txt("Sisa Dana Operasional", 12),       fx("B23-B24", 17)],                                                    # row 25
-    [txt("% Penggunaan Dana Operasional", 12), fx("IF(B23=0,0,B24/B23)", 6)],                                       # row 26
-    [txt("")],                                                                                                       # row 27
+    [txt("Penggunaan Dana Operasional", 12), fx("SUM({i})".format(i=RKI), 9)],                                      # row 24: NOTE - we index from 1, so this is actually B24
+    [txt("Sisa Dana Operasional", 12),       fx("B23-B24", 17)],                                                    # row 25 ... wait
+    [txt("% Penggunaan Dana Operasional", 12), fx("IF(B23=0,0,B24/B23)", 6)],                                       #
+    [txt("")],
 
     # C. RINGKASAN TOTAL
-    [hdr("C. RINGKASAN TOTAL", 1)],                                                                                  # row 28
-    [txt("Total Dana Anggaran", 12),         fx("B13+B23", 16)],                                                    # row 29
-    [txt("Total Penggunaan Dana", 12),       fx("B14+B24", 16)],                                                    # row 30
-    [txt("Total Sisa Dana", 12),             fx("B29-B30", 7)],                                                     # row 31
-    [txt("% Penyerapan Anggaran", 12),       fx("IF(B29=0,0,B30/B29)", 6)],                                         # row 32
-    [txt("")],                                                                                                       # row 33
-    [txt("Rata-Rata Total Pengeluaran / Hari", 12), fx("B9+B19", 16)],                                              # row 34
-    [txt("Pagu Total / Hari (Seharusnya)", 12), fx("Pengaturan!B15", 16)],                                          # row 35
-    [txt("Selisih Total / Hari", 12), fx("B35-B34", 17), txt("(positif = hemat)", 19)],                             # row 36
-    [txt("")],                                                                                                       # row 37
+    [hdr("C. RINGKASAN TOTAL", 1)],
+    [txt("Total Dana Anggaran", 12),         fx("B13+B23", 16)],
+    [txt("Total Penggunaan Dana", 12),       fx("B14+B24", 16)],
+    [txt("Total Sisa Dana", 12),             fx("B29-B30", 7)],
+    [txt("% Penyerapan Anggaran", 12),       fx("IF(B29=0,0,B30/B29)", 6)],
+    [txt("")],
+    [txt("Rata-Rata Total Pengeluaran / Hari", 12), fx("B9+B19", 16)],
+    [txt("Pagu Total / Hari (Seharusnya)", 12), fx("Pengaturan!B15", 16)],
+    [txt("Selisih Total / Hari", 12), fx("B35-B34", 17), txt("(positif = hemat)", 19)],
+    [txt("")],
 
     # D. ANALISIS SURPLUS/DEFISIT
-    [hdr("D. ANALISIS SURPLUS/DEFISIT", 34)],                                                                        # row 38
+    [hdr("D. ANALISIS SURPLUS/DEFISIT", 34)],
     [txt("Jumlah Hari SURPLUS (hemat)", 12),
-     fx('COUNTIF(\'Rekap Harian\'!N{s}:N{e},"SURPLUS")'.format(s=REKAP_DATA_START, e=REKAP_DATA_END), 15)],          # row 39
-    [txt("Jumlah Hari DEFISIT (boros)", 12),
-     fx('COUNTIF(\'Rekap Harian\'!N{s}:N{e},"DEFISIT")'.format(s=REKAP_DATA_START, e=REKAP_DATA_END), 15)],          # row 40
+     fx('COUNTIF(\'Rekap Harian\'!N{s}:N{e},"SURPLUS")'.format(s=REKAP_DATA_START, e=REKAP_DATA_END), 15)],
+    [txt("Jumlah Hari DEFISIT (melewati pagu)", 12),
+     fx('COUNTIF(\'Rekap Harian\'!N{s}:N{e},"DEFISIT")'.format(s=REKAP_DATA_START, e=REKAP_DATA_END), 15)],
     [txt("Jumlah Hari AMAN (pas pagu)", 12),
-     fx('COUNTIF(\'Rekap Harian\'!N{s}:N{e},"AMAN")'.format(s=REKAP_DATA_START, e=REKAP_DATA_END), 15)],             # row 41
-    [txt("")],                                                                                                       # row 42
+     fx('COUNTIF(\'Rekap Harian\'!N{s}:N{e},"AMAN")'.format(s=REKAP_DATA_START, e=REKAP_DATA_END), 15)],
+    [txt("Jumlah Hari Belum Input", 12),
+     fx('COUNTIF(\'Rekap Harian\'!N{s}:N{e},"BELUM")'.format(s=REKAP_DATA_START, e=REKAP_DATA_END), 15)],
+    [txt("")],
     [txt("Total Akumulasi Surplus", 12),
-     fx('SUMIF(\'Rekap Harian\'!M{s}:M{e},">0")'.format(s=REKAP_DATA_START, e=REKAP_DATA_END), 10)],                 # row 43
+     fx('SUMIF(\'Rekap Harian\'!M{s}:M{e},">0")'.format(s=REKAP_DATA_START, e=REKAP_DATA_END), 10)],
     [txt("Total Akumulasi Defisit", 12),
-     fx('SUMIF(\'Rekap Harian\'!M{s}:M{e},"<0")'.format(s=REKAP_DATA_START, e=REKAP_DATA_END), 9)],                  # row 44
-    [txt("Net Surplus/Defisit", 12), fx("B43+B44", 7)],                                                              # row 45
+     fx('SUMIF(\'Rekap Harian\'!M{s}:M{e},"<0")'.format(s=REKAP_DATA_START, e=REKAP_DATA_END), 9)],
+    [txt("Net Surplus/Defisit", 12), fx("B44+B45", 7)],
     [txt("")],
     [txt("Pengeluaran Tertinggi/Hari", 12),
-     fx("MAX('Rekap Harian'!L{s}:L{e})".format(s=REKAP_DATA_START, e=REKAP_DATA_END), 9)],                           # row 47
+     fx("MAX('Rekap Harian'!L{s}:L{e})".format(s=REKAP_DATA_START, e=REKAP_DATA_END), 9)],
     [txt("Pengeluaran Terendah/Hari", 12),
-     fx('MINIFS(\'Rekap Harian\'!L{s}:L{e},\'Rekap Harian\'!L{s}:L{e},">0")'.format(s=REKAP_DATA_START, e=REKAP_DATA_END), 10)],  # row 48
+     fx('IFERROR(MINIFS(\'Rekap Harian\'!L{s}:L{e},\'Rekap Harian\'!L{s}:L{e},">0"),0)'.format(s=REKAP_DATA_START, e=REKAP_DATA_END), 10)],
     [txt("")],
 
     [txt("CATATAN:", 12)],
-    [txt("- Dashboard update otomatis dari sheet lain. Edit hanya di Pengaturan, Pagu Harian, & Log Pengeluaran.", 19)],
-    [txt("- Selisih/Surplus POSITIF = hemat, NEGATIF = boros.", 19)],
-    [txt("- Lihat detail harian di 'Rekap Harian', detail mingguan di 'Rekap Mingguan'.", 19)],
-    [txt("- Visualisasi tersedia di sheet 'Grafik'.", 19)],
+    [txt("- Dashboard update otomatis dari sheet Rekap Harian.", 19)],
+    [txt("- Input aktual di sheet 'Rekap Harian' kolom F (Pangan) & kolom I (Operasional).", 19)],
+    [txt("- Selisih/Surplus POSITIF = hemat, NEGATIF = boros (melewati pagu).", 19)],
+    [txt("- Lihat detail mingguan di 'Rekap Mingguan', visualisasi di 'Grafik'.", 19)],
 ]
 
 
 # =========================================================================
-# SHEET: GRAFIK (data chart + drawing)
+# SHEET: GRAFIK
 # =========================================================================
-# Tabel data pendukung chart
 grafik_rows = [
     [txt("VISUALISASI LAPORAN KEUANGAN", 2)],
-    [txt("Grafik profesional di sebelah kanan dan bawah tabel data", 31)],
+    [txt("Grafik profesional di sebelah kanan tabel data", 31)],
     [txt("")],
 
-    # ----------------- DATA 1: Tren Harian -----------------
+    # 1. Tren Harian
     [sec("1. Tren Harian - Pangan & Operasional vs Pagu")],
     [hdr("Tgl"), hdr("Aktual Pangan"), hdr("Pagu Pangan"),
      hdr("Aktual Operasional"), hdr("Pagu Operasional")],
 ]
-# rows 6..5+MAX_DAYS contain daily data
 GRAFIK_TREN_START = 6
 for i in range(MAX_DAYS):
     r_rekap = REKAP_DATA_START + i
@@ -508,7 +376,7 @@ for i in range(MAX_DAYS):
 GRAFIK_TREN_END = GRAFIK_TREN_START + MAX_DAYS - 1
 grafik_rows.append([txt("")])
 
-# ----------------- DATA 2: Surplus/Defisit Harian -----------------
+# 2. Surplus vs Defisit
 grafik_rows.append([sec("2. Surplus vs Defisit Per Hari")])
 grafik_rows.append([hdr("Tgl"), hdr("Surplus (Rp)"), hdr("Defisit (Rp)")])
 GRAFIK_SD_START = len(grafik_rows) + 1
@@ -522,7 +390,7 @@ for i in range(MAX_DAYS):
 GRAFIK_SD_END = GRAFIK_SD_START + MAX_DAYS - 1
 grafik_rows.append([txt("")])
 
-# ----------------- DATA 3: Rekap Mingguan -----------------
+# 3. Rekap Mingguan
 grafik_rows.append([sec("3. Rekap Mingguan - Aktual vs Pagu")])
 grafik_rows.append([hdr("Minggu"), hdr("Aktual Pangan"), hdr("Pagu Pangan"),
                     hdr("Aktual Operasional"), hdr("Pagu Operasional")])
@@ -539,41 +407,37 @@ for w in range(1, MAX_WEEKS + 1):
 GRAFIK_MG_END = GRAFIK_MG_START + MAX_WEEKS - 1
 grafik_rows.append([txt("")])
 
-# ----------------- DATA 4: Komposisi Pengeluaran -----------------
+# 4. Komposisi
 grafik_rows.append([sec("4. Komposisi Pengeluaran")])
 grafik_rows.append([hdr("Kategori"), hdr("Jumlah (Rp)"), hdr("Persentase")])
 GRAFIK_KOMP_START = len(grafik_rows) + 1
 grafik_rows.append([
     txt("Bahan Pangan"),
-    fx("'Pengeluaran Pangan'!G{p}".format(p=PANGAN_TOTAL_ROW), 3),
-    fx("IF(('Pengeluaran Pangan'!G{p}+'Pengeluaran Operasional'!G{o})=0,0,"
-       "B{k}/('Pengeluaran Pangan'!G{p}+'Pengeluaran Operasional'!G{o}))".format(
-           p=PANGAN_TOTAL_ROW, o=OP_TOTAL_ROW, k=GRAFIK_KOMP_START), 6),
+    fx("SUM({f})".format(f=RKF), 3),
+    fx("IF((SUM({f})+SUM({i}))=0,0,B{k}/(SUM({f})+SUM({i})))".format(f=RKF, i=RKI, k=GRAFIK_KOMP_START), 6),
 ])
 grafik_rows.append([
     txt("Operasional"),
-    fx("'Pengeluaran Operasional'!G{o}".format(o=OP_TOTAL_ROW), 3),
-    fx("IF(('Pengeluaran Pangan'!G{p}+'Pengeluaran Operasional'!G{o})=0,0,"
-       "B{k}/('Pengeluaran Pangan'!G{p}+'Pengeluaran Operasional'!G{o}))".format(
-           p=PANGAN_TOTAL_ROW, o=OP_TOTAL_ROW, k=GRAFIK_KOMP_START + 1), 6),
+    fx("SUM({i})".format(i=RKI), 3),
+    fx("IF((SUM({f})+SUM({i}))=0,0,B{k}/(SUM({f})+SUM({i})))".format(f=RKF, i=RKI, k=GRAFIK_KOMP_START + 1), 6),
 ])
 GRAFIK_KOMP_END = GRAFIK_KOMP_START + 1
 grafik_rows.append([txt("")])
 
-# ----------------- DATA 5: Anggaran vs Realisasi -----------------
+# 5. Anggaran vs Realisasi
 grafik_rows.append([sec("5. Anggaran vs Realisasi vs Sisa")])
 grafik_rows.append([hdr("Kategori"), hdr("Dana Total"), hdr("Terpakai"), hdr("Sisa")])
 GRAFIK_AR_START = len(grafik_rows) + 1
 grafik_rows.append([
     txt("Bahan Pangan"),
     fx("Pengaturan!B8", 3),
-    fx("'Pengeluaran Pangan'!G{p}".format(p=PANGAN_TOTAL_ROW), 3),
+    fx("SUM({f})".format(f=RKF), 3),
     fx("B{r}-C{r}".format(r=GRAFIK_AR_START), 3),
 ])
 grafik_rows.append([
     txt("Operasional"),
     fx("Pengaturan!B9", 3),
-    fx("'Pengeluaran Operasional'!G{o}".format(o=OP_TOTAL_ROW), 3),
+    fx("SUM({i})".format(i=RKI), 3),
     fx("B{r}-C{r}".format(r=GRAFIK_AR_START + 1), 3),
 ])
 GRAFIK_AR_END = GRAFIK_AR_START + 1
@@ -584,7 +448,7 @@ GRAFIK_AR_END = GRAFIK_AR_START + 1
 # =========================================================================
 kategori_rows = [
     [txt("DAFTAR KATEGORI (REFERENSI)", 2)],
-    [txt("Gunakan nama kategori yang konsisten agar SUMIF akurat", 31)],
+    [txt("Referensi daftar kategori - tidak dipakai di formula, hanya panduan", 31)],
     [hdr("Kategori Bahan Pangan"), hdr("Kategori Operasional")],
 ]
 kat_pangan_list = ["Karbohidrat", "Protein Hewani", "Protein Nabati",
@@ -600,25 +464,21 @@ for i in range(max(len(kat_pangan_list), len(kat_op_list))):
 
 # =========================================================================
 # SHEETS CONFIG
-# (name, rows, col_widths, merge_A1, tab_color)
 # =========================================================================
 SHEETS = [
-    ("Dashboard",              dashboard_rows,   [(1, 44), (2, 24), (3, 24), (4, 24)], "A1:D1", "1F4E79"),
-    ("Rekap Harian",           rekap_rows,       [(1,5),(2,14),(3,14),(4,7),(5,16),(6,16),(7,16),(8,16),(9,16),(10,16),(11,16),(12,16),(13,18),(14,14)], "A1:N1", "548235"),
-    ("Rekap Mingguan",         mingguan_rows,    [(1,10),(2,22),(3,16),(4,16),(5,16),(6,16),(7,16),(8,16),(9,16),(10,16),(11,18),(12,14)], "A1:L1", "548235"),
-    ("Grafik",                 grafik_rows,      [(1, 14), (2, 20), (3, 20), (4, 20), (5, 20)], "A1:E1", "C00000"),
-    ("Pengaturan",             pengaturan_rows,  [(1, 38), (2, 22), (3, 30)], "A1:C1", "7030A0"),
-    ("Pagu Harian",            pagu_rows,        [(1, 14), (2, 22), (3, 22), (4, 22), (5, 28)], "A1:E1", "BF8F00"),
-    ("Pengeluaran Pangan",     pangan_rows,      [(1, 14), (2, 28), (3, 18), (4, 8), (5, 10), (6, 18), (7, 18), (8, 22)], "A1:H1", "548235"),
-    ("Pengeluaran Operasional", operasional_rows,[(1, 14), (2, 28), (3, 18), (4, 8), (5, 10), (6, 18), (7, 18), (8, 22)], "A1:H1", "ED7D31"),
-    ("Kategori",               kategori_rows,    [(1, 28), (2, 28)], "A1:B1", "808080"),
+    ("Dashboard",       dashboard_rows, [(1, 44), (2, 24), (3, 24), (4, 24)], "A1:D1", "1F4E79"),
+    ("Rekap Harian",    rekap_rows,     [(1,5),(2,14),(3,14),(4,7),(5,16),(6,16),(7,16),(8,16),(9,16),(10,16),(11,16),(12,16),(13,18),(14,14)], "A1:N1", "548235"),
+    ("Rekap Mingguan",  mingguan_rows,  [(1,10),(2,22),(3,16),(4,16),(5,16),(6,16),(7,16),(8,16),(9,16),(10,16),(11,18),(12,14)], "A1:L1", "548235"),
+    ("Grafik",          grafik_rows,    [(1, 14), (2, 20), (3, 20), (4, 20), (5, 20)], "A1:E1", "C00000"),
+    ("Pengaturan",      pengaturan_rows,[(1, 38), (2, 22), (3, 30)], "A1:C1", "7030A0"),
+    ("Pagu Harian",     pagu_rows,      [(1, 14), (2, 22), (3, 22), (4, 22), (5, 28)], "A1:E1", "BF8F00"),
+    ("Kategori",        kategori_rows,  [(1, 28), (2, 28)], "A1:B1", "808080"),
 ]
 
 
 # =========================================================================
 # XML BUILDERS
 # =========================================================================
-
 def col_letter(idx):
     s = ""
     while idx > 0:
@@ -633,14 +493,14 @@ def iso_to_serial(iso):
     return (date(y, m, d) - base).days
 
 
-def build_sheet_xml(rows, merge_range, tab_color=None, has_drawing=False, freeze=None):
+def build_sheet_xml(rows, merge_range, tab_color=None, has_drawing=False,
+                    freeze=None, conditional_formatting=""):
     out = []
     out.append('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>')
     out.append('<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '
                'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">')
     if tab_color:
         out.append('<sheetPr><tabColor rgb="FF{0}"/></sheetPr>'.format(tab_color))
-    # sheet views with freeze panes
     if freeze:
         fr_row, fr_col = freeze
         top_left = "{0}{1}".format(col_letter(fr_col + 1), fr_row + 1)
@@ -656,7 +516,6 @@ def build_sheet_xml(rows, merge_range, tab_color=None, has_drawing=False, freeze
     for r_idx, row in enumerate(rows, start=1):
         if not row:
             continue
-        # special row height for title (row 1)
         if r_idx == 1:
             out.append('<row r="1" ht="32" customHeight="1">')
         elif r_idx == 2:
@@ -683,6 +542,9 @@ def build_sheet_xml(rows, merge_range, tab_color=None, has_drawing=False, freeze
     out.append("</sheetData>")
     if merge_range:
         out.append('<mergeCells count="1"><mergeCell ref="{0}"/></mergeCells>'.format(merge_range))
+    # Conditional formatting BEFORE drawing
+    if conditional_formatting:
+        out.append(conditional_formatting)
     if has_drawing:
         out.append('<drawing r:id="rId1"/>')
     out.append("</worksheet>")
@@ -699,8 +561,19 @@ def build_cols_block(widths):
     return "\n".join(parts)
 
 
+# Conditional formatting untuk status column
+def cf_status(range_ref):
+    """Return conditionalFormatting XML for status column (SURPLUS/DEFISIT/AMAN/BELUM)."""
+    return ('<conditionalFormatting sqref="{r}">'
+            '<cfRule type="cellIs" dxfId="0" priority="1" operator="equal"><formula>"SURPLUS"</formula></cfRule>'
+            '<cfRule type="cellIs" dxfId="1" priority="2" operator="equal"><formula>"DEFISIT"</formula></cfRule>'
+            '<cfRule type="cellIs" dxfId="2" priority="3" operator="equal"><formula>"AMAN"</formula></cfRule>'
+            '<cfRule type="cellIs" dxfId="3" priority="4" operator="equal"><formula>"BELUM"</formula></cfRule>'
+            '</conditionalFormatting>').format(r=range_ref)
+
+
 # =========================================================================
-# STYLES XML - Professional Edition
+# STYLES XML
 # =========================================================================
 STYLES_XML = r'''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
@@ -803,7 +676,7 @@ STYLES_XML = r'''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
     <xf numFmtId="0"   fontId="11" fillId="10" borderId="4" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
     <xf numFmtId="0"   fontId="11" fillId="11" borderId="4" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
     <xf numFmtId="0"   fontId="11" fillId="9" borderId="4" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
-    <xf numFmtId="0"   fontId="1" fillId="2" borderId="4" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
+    <xf numFmtId="0"   fontId="3" fillId="0" borderId="4" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
     <xf numFmtId="0"   fontId="17" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment horizontal="center"/></xf>
     <xf numFmtId="0"   fontId="12" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment horizontal="center"/></xf>
     <xf numFmtId="0"   fontId="9" fillId="2" borderId="4" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="left" vertical="center" indent="1"/></xf>
@@ -812,32 +685,43 @@ STYLES_XML = r'''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
     <xf numFmtId="164" fontId="13" fillId="5" borderId="4" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1"/>
   </cellXfs>
   <cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>
+  <dxfs count="4">
+    <dxf>
+      <font><b/><color rgb="FFFFFFFF"/></font>
+      <fill><patternFill patternType="solid"><bgColor rgb="FF70AD47"/></patternFill></fill>
+    </dxf>
+    <dxf>
+      <font><b/><color rgb="FFFFFFFF"/></font>
+      <fill><patternFill patternType="solid"><bgColor rgb="FFC00000"/></patternFill></fill>
+    </dxf>
+    <dxf>
+      <font><b/><color rgb="FFFFFFFF"/></font>
+      <fill><patternFill patternType="solid"><bgColor rgb="FF2E75B6"/></patternFill></fill>
+    </dxf>
+    <dxf>
+      <font><b/><color rgb="FF808080"/></font>
+      <fill><patternFill patternType="solid"><bgColor rgb="FFE7E6E6"/></patternFill></fill>
+    </dxf>
+  </dxfs>
 </styleSheet>
 '''
 
 
 # =========================================================================
-# CHART XML BUILDERS (Professional Edition)
+# CHART XML BUILDERS
 # =========================================================================
-
 def chart_tren_pangan():
-    """Line chart: Aktual Pangan vs Pagu Pangan harian"""
     return '''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
   <c:roundedCorners val="0"/>
   <c:chart>
-    <c:title>
-      <c:tx><c:rich><a:bodyPr/><a:lstStyle/>
-        <a:p><a:r><a:rPr lang="id-ID" b="1" sz="1600"><a:solidFill><a:srgbClr val="1F4E79"/></a:solidFill></a:rPr><a:t>Tren Harian: Bahan Pangan (Aktual vs Pagu)</a:t></a:r></a:p>
-      </c:rich></c:tx>
-      <c:overlay val="0"/>
-    </c:title>
+    <c:title><c:tx><c:rich><a:bodyPr/><a:lstStyle/>
+      <a:p><a:r><a:rPr lang="id-ID" b="1" sz="1600"><a:solidFill><a:srgbClr val="1F4E79"/></a:solidFill></a:rPr><a:t>Tren Harian: Bahan Pangan (Aktual vs Pagu)</a:t></a:r></a:p>
+    </c:rich></c:tx><c:overlay val="0"/></c:title>
     <c:autoTitleDeleted val="0"/>
     <c:plotArea>
       <c:layout/>
-      <c:lineChart>
-        <c:grouping val="standard"/>
-        <c:varyColors val="0"/>
+      <c:lineChart><c:grouping val="standard"/><c:varyColors val="0"/>
         <c:ser>
           <c:idx val="0"/><c:order val="0"/>
           <c:tx><c:strRef><c:f>Grafik!$B$5</c:f><c:strCache><c:ptCount val="1"/><c:pt idx="0"><c:v>Aktual Pangan</c:v></c:pt></c:strCache></c:strRef></c:tx>
@@ -856,24 +740,20 @@ def chart_tren_pangan():
           <c:val><c:numRef><c:f>Grafik!$C$''' + str(GRAFIK_TREN_START) + ''':$C$''' + str(GRAFIK_TREN_END) + '''</c:f></c:numRef></c:val>
           <c:smooth val="0"/>
         </c:ser>
-        <c:marker val="1"/>
-        <c:axId val="101"/><c:axId val="102"/>
+        <c:marker val="1"/><c:axId val="101"/><c:axId val="102"/>
       </c:lineChart>
       <c:catAx><c:axId val="101"/><c:scaling><c:orientation val="minMax"/></c:scaling><c:delete val="0"/><c:axPos val="b"/><c:numFmt formatCode="dd/mm" sourceLinked="0"/><c:majorTickMark val="out"/><c:minorTickMark val="none"/><c:tickLblPos val="nextTo"/><c:txPr><a:bodyPr rot="-2700000"/><a:lstStyle/><a:p><a:pPr><a:defRPr sz="900"/></a:pPr><a:endParaRPr lang="id-ID"/></a:p></c:txPr><c:crossAx val="102"/></c:catAx>
       <c:valAx><c:axId val="102"/><c:scaling><c:orientation val="minMax"/></c:scaling><c:delete val="0"/><c:axPos val="l"/><c:majorGridlines><c:spPr><a:ln w="9525"><a:solidFill><a:srgbClr val="E7E6E6"/></a:solidFill></a:ln></c:spPr></c:majorGridlines><c:numFmt formatCode="&quot;Rp&quot;#,##0" sourceLinked="0"/><c:majorTickMark val="out"/><c:minorTickMark val="none"/><c:tickLblPos val="nextTo"/><c:crossAx val="101"/></c:valAx>
       <c:spPr><a:noFill/><a:ln><a:noFill/></a:ln></c:spPr>
     </c:plotArea>
-    <c:plotVisOnly val="1"/>
-    <c:dispBlanksAs val="gap"/>
+    <c:plotVisOnly val="1"/><c:dispBlanksAs val="gap"/>
   </c:chart>
   <c:spPr><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill><a:ln w="9525"><a:solidFill><a:srgbClr val="D9D9D9"/></a:solidFill></a:ln></c:spPr>
-  <c:externalData r:id="rId1"><c:autoUpdate val="0"/></c:externalData>
 </c:chartSpace>
 '''
 
 
 def chart_tren_operasional():
-    """Line chart: Aktual Operasional vs Pagu Operasional"""
     return '''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
   <c:roundedCorners val="0"/>
@@ -884,9 +764,7 @@ def chart_tren_operasional():
     <c:autoTitleDeleted val="0"/>
     <c:plotArea>
       <c:layout/>
-      <c:lineChart>
-        <c:grouping val="standard"/>
-        <c:varyColors val="0"/>
+      <c:lineChart><c:grouping val="standard"/><c:varyColors val="0"/>
         <c:ser>
           <c:idx val="0"/><c:order val="0"/>
           <c:tx><c:strRef><c:f>Grafik!$D$5</c:f><c:strCache><c:ptCount val="1"/><c:pt idx="0"><c:v>Aktual Operasional</c:v></c:pt></c:strCache></c:strRef></c:tx>
@@ -905,15 +783,13 @@ def chart_tren_operasional():
           <c:val><c:numRef><c:f>Grafik!$E$''' + str(GRAFIK_TREN_START) + ''':$E$''' + str(GRAFIK_TREN_END) + '''</c:f></c:numRef></c:val>
           <c:smooth val="0"/>
         </c:ser>
-        <c:marker val="1"/>
-        <c:axId val="201"/><c:axId val="202"/>
+        <c:marker val="1"/><c:axId val="201"/><c:axId val="202"/>
       </c:lineChart>
       <c:catAx><c:axId val="201"/><c:scaling><c:orientation val="minMax"/></c:scaling><c:delete val="0"/><c:axPos val="b"/><c:numFmt formatCode="dd/mm" sourceLinked="0"/><c:majorTickMark val="out"/><c:tickLblPos val="nextTo"/><c:txPr><a:bodyPr rot="-2700000"/><a:lstStyle/><a:p><a:pPr><a:defRPr sz="900"/></a:pPr><a:endParaRPr lang="id-ID"/></a:p></c:txPr><c:crossAx val="202"/></c:catAx>
       <c:valAx><c:axId val="202"/><c:scaling><c:orientation val="minMax"/></c:scaling><c:delete val="0"/><c:axPos val="l"/><c:majorGridlines><c:spPr><a:ln w="9525"><a:solidFill><a:srgbClr val="E7E6E6"/></a:solidFill></a:ln></c:spPr></c:majorGridlines><c:numFmt formatCode="&quot;Rp&quot;#,##0" sourceLinked="0"/><c:majorTickMark val="out"/><c:tickLblPos val="nextTo"/><c:crossAx val="201"/></c:valAx>
       <c:spPr><a:noFill/><a:ln><a:noFill/></a:ln></c:spPr>
     </c:plotArea>
-    <c:plotVisOnly val="1"/>
-    <c:dispBlanksAs val="gap"/>
+    <c:plotVisOnly val="1"/><c:dispBlanksAs val="gap"/>
   </c:chart>
   <c:spPr><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill><a:ln w="9525"><a:solidFill><a:srgbClr val="D9D9D9"/></a:solidFill></a:ln></c:spPr>
 </c:chartSpace>
@@ -921,7 +797,6 @@ def chart_tren_operasional():
 
 
 def chart_surplus_defisit():
-    """Column chart: Surplus vs Defisit harian"""
     return '''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
   <c:roundedCorners val="0"/>
@@ -932,10 +807,7 @@ def chart_surplus_defisit():
     <c:autoTitleDeleted val="0"/>
     <c:plotArea>
       <c:layout/>
-      <c:barChart>
-        <c:barDir val="col"/>
-        <c:grouping val="clustered"/>
-        <c:varyColors val="0"/>
+      <c:barChart><c:barDir val="col"/><c:grouping val="clustered"/><c:varyColors val="0"/>
         <c:ser>
           <c:idx val="0"/><c:order val="0"/>
           <c:tx><c:strRef><c:f>Grafik!$B$''' + str(GRAFIK_SD_START - 1) + '''</c:f><c:strCache><c:ptCount val="1"/><c:pt idx="0"><c:v>Surplus</c:v></c:pt></c:strCache></c:strRef></c:tx>
@@ -950,8 +822,7 @@ def chart_surplus_defisit():
           <c:cat><c:numRef><c:f>Grafik!$A$''' + str(GRAFIK_SD_START) + ''':$A$''' + str(GRAFIK_SD_END) + '''</c:f></c:numRef></c:cat>
           <c:val><c:numRef><c:f>Grafik!$C$''' + str(GRAFIK_SD_START) + ''':$C$''' + str(GRAFIK_SD_END) + '''</c:f></c:numRef></c:val>
         </c:ser>
-        <c:gapWidth val="80"/>
-        <c:overlap val="0"/>
+        <c:gapWidth val="80"/><c:overlap val="0"/>
         <c:axId val="301"/><c:axId val="302"/>
       </c:barChart>
       <c:catAx><c:axId val="301"/><c:scaling><c:orientation val="minMax"/></c:scaling><c:delete val="0"/><c:axPos val="b"/><c:numFmt formatCode="dd/mm" sourceLinked="0"/><c:majorTickMark val="out"/><c:tickLblPos val="nextTo"/><c:txPr><a:bodyPr rot="-2700000"/><a:lstStyle/><a:p><a:pPr><a:defRPr sz="900"/></a:pPr><a:endParaRPr lang="id-ID"/></a:p></c:txPr><c:crossAx val="302"/></c:catAx>
@@ -967,7 +838,6 @@ def chart_surplus_defisit():
 
 
 def chart_mingguan():
-    """Clustered bar chart: rekap mingguan"""
     return '''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
   <c:roundedCorners val="0"/>
@@ -978,10 +848,7 @@ def chart_mingguan():
     <c:autoTitleDeleted val="0"/>
     <c:plotArea>
       <c:layout/>
-      <c:barChart>
-        <c:barDir val="col"/>
-        <c:grouping val="clustered"/>
-        <c:varyColors val="0"/>
+      <c:barChart><c:barDir val="col"/><c:grouping val="clustered"/><c:varyColors val="0"/>
         <c:ser>
           <c:idx val="0"/><c:order val="0"/>
           <c:tx><c:strRef><c:f>Grafik!$B$''' + str(GRAFIK_MG_START - 1) + '''</c:f><c:strCache><c:ptCount val="1"/><c:pt idx="0"><c:v>Aktual Pangan</c:v></c:pt></c:strCache></c:strRef></c:tx>
@@ -1010,8 +877,7 @@ def chart_mingguan():
           <c:cat><c:strRef><c:f>Grafik!$A$''' + str(GRAFIK_MG_START) + ''':$A$''' + str(GRAFIK_MG_END) + '''</c:f></c:strRef></c:cat>
           <c:val><c:numRef><c:f>Grafik!$E$''' + str(GRAFIK_MG_START) + ''':$E$''' + str(GRAFIK_MG_END) + '''</c:f></c:numRef></c:val>
         </c:ser>
-        <c:gapWidth val="100"/>
-        <c:overlap val="-10"/>
+        <c:gapWidth val="100"/><c:overlap val="-10"/>
         <c:axId val="401"/><c:axId val="402"/>
       </c:barChart>
       <c:catAx><c:axId val="401"/><c:scaling><c:orientation val="minMax"/></c:scaling><c:delete val="0"/><c:axPos val="b"/><c:majorTickMark val="out"/><c:tickLblPos val="nextTo"/><c:crossAx val="402"/></c:catAx>
@@ -1027,7 +893,6 @@ def chart_mingguan():
 
 
 def chart_donut():
-    """Donut chart: komposisi pengeluaran"""
     return '''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
   <c:roundedCorners val="0"/>
@@ -1038,8 +903,7 @@ def chart_donut():
     <c:autoTitleDeleted val="0"/>
     <c:plotArea>
       <c:layout/>
-      <c:doughnutChart>
-        <c:varyColors val="1"/>
+      <c:doughnutChart><c:varyColors val="1"/>
         <c:ser>
           <c:idx val="0"/><c:order val="0"/>
           <c:tx><c:strRef><c:f>Grafik!$B$''' + str(GRAFIK_KOMP_START - 1) + '''</c:f><c:strCache><c:ptCount val="1"/><c:pt idx="0"><c:v>Jumlah</c:v></c:pt></c:strCache></c:strRef></c:tx>
@@ -1053,8 +917,7 @@ def chart_donut():
           <c:cat><c:strRef><c:f>Grafik!$A$''' + str(GRAFIK_KOMP_START) + ''':$A$''' + str(GRAFIK_KOMP_END) + '''</c:f></c:strRef></c:cat>
           <c:val><c:numRef><c:f>Grafik!$B$''' + str(GRAFIK_KOMP_START) + ''':$B$''' + str(GRAFIK_KOMP_END) + '''</c:f></c:numRef></c:val>
         </c:ser>
-        <c:firstSliceAng val="0"/>
-        <c:holeSize val="50"/>
+        <c:firstSliceAng val="0"/><c:holeSize val="50"/>
       </c:doughnutChart>
     </c:plotArea>
     <c:legend><c:legendPos val="b"/><c:overlay val="0"/><c:txPr><a:bodyPr/><a:lstStyle/><a:p><a:pPr><a:defRPr sz="1100"/></a:pPr><a:endParaRPr lang="id-ID"/></a:p></c:txPr></c:legend>
@@ -1068,13 +931,6 @@ def chart_donut():
 # =========================================================================
 # DRAWING (posisi chart di sheet Grafik)
 # =========================================================================
-# Layout chart di grid kolom-G sampai kolom-O:
-#   Chart 1 (G2:O22)   - Tren Pangan
-#   Chart 2 (G23:O43)  - Tren Operasional
-#   Chart 3 (G44:O64)  - Surplus/Defisit
-#   Chart 4 (G65:O85)  - Rekap Mingguan
-#   Chart 5 (G86:M105) - Donut Komposisi
-
 def _anchor(col_f, row_f, col_t, row_t, chart_num):
     return '''<xdr:twoCellAnchor editAs="oneCell">
     <xdr:from><xdr:col>{cf}</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>{rf}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from>
@@ -1114,7 +970,6 @@ DRAWING_RELS = '''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 # =========================================================================
 # PACKAGE
 # =========================================================================
-
 def build_content_types(n_sheets, n_charts):
     overrides = []
     for i in range(1, n_sheets + 1):
@@ -1188,14 +1043,17 @@ def main():
             grafik_idx = i
             break
 
-    # freeze panes mapping: row, col to freeze
     FREEZE = {
-        "Dashboard":              (4, 0),   # freeze first 4 rows (periode info)
-        "Rekap Harian":           (5, 2),   # freeze header (5 rows) & 2 cols (No, Tgl)
-        "Rekap Mingguan":         (3, 1),
-        "Pagu Harian":            (3, 1),
-        "Pengeluaran Pangan":     (3, 0),
-        "Pengeluaran Operasional": (3, 0),
+        "Dashboard":     (4, 0),
+        "Rekap Harian":  (5, 2),
+        "Rekap Mingguan":(3, 1),
+        "Pagu Harian":   (3, 1),
+    }
+
+    # Conditional formatting per sheet
+    CF_RULES = {
+        "Rekap Harian":  cf_status("N{s}:N{e}".format(s=REKAP_DATA_START, e=REKAP_DATA_END)),
+        "Rekap Mingguan":cf_status("L{s}:L{e}".format(s=MINGGUAN_DATA_START, e=MINGGUAN_DATA_END)),
     }
 
     with zipfile.ZipFile(OUTPUT, "w", zipfile.ZIP_DEFLATED) as z:
@@ -1208,8 +1066,10 @@ def main():
         for i, (name, rows, widths, merge, tab_color) in enumerate(SHEETS, start=1):
             has_drawing = (i == grafik_idx)
             freeze = FREEZE.get(name)
+            cf = CF_RULES.get(name, "")
             xml = build_sheet_xml(rows, merge, tab_color=tab_color,
-                                  has_drawing=has_drawing, freeze=freeze)
+                                  has_drawing=has_drawing, freeze=freeze,
+                                  conditional_formatting=cf)
             xml = xml.replace("__COLS__", build_cols_block(widths))
             z.writestr("xl/worksheets/sheet{0}.xml".format(i), xml)
 
