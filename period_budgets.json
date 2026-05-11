@@ -1,0 +1,55 @@
+{
+  "budgets": [
+    {
+      "file": "Total Akumulasi 01 Sep 2025 s:d 12 Sep 2025.xlsx",
+      "pangan": 282340000.0,
+      "ops": 150330000.0,
+      "total": 432670000.0
+    },
+    {
+      "file": "Total Akumulasi 10 Nov 2025 s_d 22 Nov 2025.xlsx",
+      "pangan": 373584000.0,
+      "ops": 180168000.0,
+      "total": 553752000.0
+    },
+    {
+      "file": "Total Akumulasi 13 Oct 2025 s:d 24 Oct 2025.xlsx",
+      "pangan": 282340000.0,
+      "ops": 150330000.0,
+      "total": 432670000.0
+    },
+    {
+      "file": "Total Akumulasi 15 Sep 2025 s:d 26 Sep 2025.xlsx",
+      "pangan": 282340000.0,
+      "ops": 150330000.0,
+      "total": 432670000.0
+    },
+    {
+      "file": "Total Akumulasi 22 Dec 2025 s_d 31 Dec 2025.xlsx",
+      "pangan": 27340000.0,
+      "ops": 69630000.0,
+      "total": 96970000.0
+    },
+    {
+      "file": "Total Akumulasi 24 Nov 2025 s_d 06 Dec 2025.xlsx",
+      "pangan": 373584000.0,
+      "ops": 180168000.0,
+      "total": 553752000.0
+    },
+    {
+      "file": "Total Akumulasi 27 Oct 2025 s:d 08 Nov 2025.xlsx",
+      "pangan": 372312000.0,
+      "ops": 179700000.0,
+      "total": 552012000.0
+    },
+    {
+      "file": "Total Akumulasi 29 Sep 2025 s:d 10 Oct 2025.xlsx",
+      "pangan": 282340000.0,
+      "ops": 150330000.0,
+      "total": 432670000.0
+    }
+  ],
+  "total_pangan": 2276180000.0,
+  "total_ops": 1210986000.0,
+  "total_anggaran": 3487166000.0
+}
