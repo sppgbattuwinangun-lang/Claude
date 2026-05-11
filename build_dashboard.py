@@ -1,18 +1,14 @@
 #!/usr/bin/env python3
 """
-DASHBOARD AKUMULASI SPPG BATTUWINANGUN
+DASHBOARD AKUMULASI SPPG BATTUWINANGUN (v3 - Professional)
 Periode: 01 September 2025 s/d 31 Desember 2025
 
-Perhitungan SEMUA nilai dijamin matematis & konsisten:
-  - Total Anggaran  = SUM Dana Alokasi dari 8 sheet Pengaturan (Rp 3.487.166.000)
-  - Total Penggunaan = SUM aktual harian (Pangan + Operasional)
-  - Total Sisa      = Total Anggaran - Total Penggunaan
-  - % Penyerapan    = Total Penggunaan / Total Anggaran
-  - Semua formula menggunakan referensi cell, bukan hardcode
-
-Output: Dashboard_Akumulasi_Sep_Des_2025.xlsx
-Sheet  : Dashboard | Rekap Harian | Rekap Mingguan | Chart Data
-Chart  : 5 grafik (Line, Doughnut, Stacked Column, Bar Mingguan, Pie Status)
+Perbaikan v3:
+- Chart XML mengikuti format standar Excel (dengan numCache embedded)
+- Drawing pakai oneCellAnchor (ukuran eksplisit) agar chart pasti render
+- Layout 10-kolom ketat tanpa kolom kosong
+- Setiap section dapat background color, no white gaps
+- KPI cards dengan ukuran konsisten
 """
 
 import os, json, zipfile
@@ -308,183 +304,208 @@ STYLES_XML = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 
 
 # ============================================================
-# SHEET 1: DASHBOARD
+# SHEET 1: DASHBOARD - PROFESSIONAL LAYOUT
 # ============================================================
 def build_dashboard_sheet():
+    """
+    Layout: 10-column grid (A-J), each section tightly packed.
+    Row plan:
+       1-2  : Title banner (navy, 2 rows tall)
+       3    : Periode + meta
+       4    : spacer (8px)
+       5-7  : 5 KPI cards (row 5 label, row 6 value, row 7 caption)
+       8    : spacer
+       9    : Section A header
+       10-16: Section A metrics (Pangan)
+       17   : spacer
+       18   : Section B header
+       19-25: Section B metrics (Ops)
+       26   : spacer
+       27   : Section C header
+       28-34: Section C metrics (Total)
+       35   : spacer
+       36   : Section D header
+       37-51: Section D metrics (Surplus/Defisit)
+       52   : spacer
+       53   : Chart header banner
+       54-58: spacer for chart anchoring
+       59-78: Chart 1 (Line) anchor
+       79-80: spacer
+       82-102: Chart 2 & 3 (Doughnut / Status)
+       104-125: Chart 4 (Weekly)
+       127-148: Chart 5 (Stacked)
+       150+ : Catatan/footer
+    """
     rows = {}
     merges = []
 
-    # --- TITLE BANNER (row 1-2) ---
-    rows[1] = [cell("", 1)] * 10
-    rows[1][0] = cell("DASHBOARD AKUMULASI LAPORAN KEUANGAN", 1)
-    rows[2] = [cell("", 1)] * 10
-    rows[2][0] = cell("SPPG BATTUWINANGUN  -  Program Pemenuhan Gizi Nasional", 1)
+    # All cells default to white bg (style 0), but we'll fill headers with colors
+
+    # --- TITLE BANNER (rows 1-2) ---
+    rows[1] = [cell("DASHBOARD AKUMULASI LAPORAN KEUANGAN", 1)] + [cell("", 1)] * 9
+    rows[2] = [cell("SPPG BATTUWINANGUN  -  Program Pemenuhan Gizi Nasional", 1)] + [cell("", 1)] * 9
     merges += ["A1:J1", "A2:J2"]
 
-    # --- PERIODE (row 3) ---
-    rows[3] = [cell("", 0)] * 10
-    rows[3][0] = cell("PERIODE LAPORAN:", 2)
-    rows[3][2] = cell("01 September 2025 s/d 31 Desember 2025", 2)
-    rows[3][6] = cell("HARI TERCATAT:", 2)
-    rows[3][8] = cell(f"{n_total_days} hari ({n_active} hari aktif)", 2)
+    # --- PERIODE INFO ROW (row 3) ---
+    rows[3] = [
+        cell("PERIODE LAPORAN:", 2), cell("", 2),
+        cell("01 September 2025 s/d 31 Desember 2025", 2), cell("", 2), cell("", 2), cell("", 2),
+        cell("HARI TERCATAT:", 2), cell("", 2),
+        cell(f"{n_total_days} hari ({n_active} aktif)", 2), cell("", 2),
+    ]
     merges += ["A3:B3", "C3:F3", "G3:H3", "I3:J3"]
 
-    # --- 4 KPI BANNER (row 5-6) ---
-    rows[5] = [cell("", 0)] * 10
-    rows[5][0] = cell("💰 TOTAL DANA ANGGARAN", 4)
-    rows[5][2] = cell("📊 TOTAL DIPAKAI", 4)
-    rows[5][5] = cell("💵 TOTAL SISA DANA", 4)
-    rows[5][7] = cell("📈 % PENYERAPAN", 4)
-    merges += ["A5:B5", "C5:D5", "E5:F5", "G5:H5", "I5:J5"]
-    # last KPI column: % SURPLUS
-    rows[5][8] = cell("⭐ % SURPLUS (HEMAT)", 4)
+    # --- KPI CARDS (rows 5-6, 5 cards × 2 cols each) ---
+    # Row 5: Labels
+    kpi_labels = [
+        ("💰 TOTAL ANGGARAN", 4),
+        ("📊 TOTAL DIPAKAI", 4),
+        ("💵 SISA DANA", 4),
+        ("📈 % PENYERAPAN", 4),
+        ("⭐ % SURPLUS", 4),
+    ]
+    rows[5] = []
+    for label, s in kpi_labels:
+        rows[5].append(cell(label, s))
+        rows[5].append(cell("", s))
+    # Row 6: Values
+    rows[6] = [
+        cell(total_anggaran, 5), cell("", 5),
+        cell(total_penggunaan, 5), cell("", 5),
+        cell(total_sisa, 17), cell("", 17),
+        cell(pct_penyerapan, 30), cell("", 30),
+        cell(pct_surplus_total, 30), cell("", 30),
+    ]
+    merges += ["A5:B5", "C5:D5", "E5:F5", "G5:H5", "I5:J5",
+               "A6:B6", "C6:D6", "E6:F6", "G6:H6", "I6:J6"]
 
-    rows[6] = [cell("", 0)] * 10
-    # Use cell references so formulas re-compute if edited in Chart Data
-    rows[6][0] = cell(total_anggaran, 5)
-    rows[6][2] = cell(total_penggunaan, 5)
-    rows[6][5] = cell(total_sisa, 17)
-    rows[6][7] = cell(pct_penyerapan, 30)
-    rows[6][8] = cell(pct_surplus_total, 30)
-    merges += ["A6:B6", "C6:D6", "E6:F6", "G6:H6", "I6:J6"]
-
-    # --- SECTION A: PANGAN (row 8) ---
+    # --- SECTION A: PANGAN (rows 8 header, 9-16 metrics) ---
     rows[8] = [cell("A. PENGELUARAN BAHAN PANGAN", 3)] + [cell("", 3)] * 9
     merges.append("A8:J8")
 
-    pangan = [
-        ("Rata-Rata Pengeluaran Bahan Pangan / Hari", avg_pangan, "cur"),
-        ("Pengeluaran Bahan Pangan Seharusnya (Pagu) / Hari", pagu_pangan_day, "cur"),
-        ("Selisih Pengeluaran Bahan Pangan / Hari", selisih_pangan_day, "cur"),
-        ("", "", "blank"),
-        ("Dana Total Bahan Pangan", dana_pangan, "cur_total"),
-        ("Penggunaan Dana Pangan", akt_pangan, "cur_total"),
-        ("Sisa Dana Pangan", sisa_pangan, "cur_total"),
-        ("% Penggunaan Dana Pangan", pct_pangan, "pct"),
+    pangan_items = [
+        ("Rata-Rata Pengeluaran Bahan Pangan / Hari", avg_pangan, 6),
+        ("Pengeluaran Bahan Pangan Seharusnya (Pagu) / Hari", pagu_pangan_day, 6),
+        ("Selisih Pengeluaran Bahan Pangan / Hari", selisih_pangan_day, 6),
+        ("Dana Total Bahan Pangan", dana_pangan, 7),
+        ("Penggunaan Dana Pangan", akt_pangan, 7),
+        ("Sisa Dana Pangan", sisa_pangan, 7),
+        ("% Penggunaan Dana Pangan", pct_pangan, 8),
     ]
-    r = 9
-    for label, val, kind in pangan:
-        rows[r] = [cell("", 0)] * 10
-        if kind == "blank":
-            r += 1; continue
-        rows[r][0] = cell(label, 27)
-        style = {"cur": 6, "cur_total": 7, "pct": 8}[kind]
-        rows[r][6] = cell(val, style)
+    for i, (label, val, style) in enumerate(pangan_items):
+        r = 9 + i
+        rows[r] = [cell(label, 27)] + [cell("", 27)] * 5 + [cell(val, style)] + [cell("", style)] * 3
         merges += [f"A{r}:F{r}", f"G{r}:J{r}"]
-        r += 1
 
-    # --- SECTION B: OPERASIONAL (row 18) ---
-    rows[18] = [cell("B. PENGELUARAN OPERASIONAL", 24)] + [cell("", 24)] * 9
-    merges.append("A18:J18")
+    # --- SECTION B: OPS (row 17 header, 18-24 metrics) ---
+    rows[17] = [cell("B. PENGELUARAN OPERASIONAL", 24)] + [cell("", 24)] * 9
+    merges.append("A17:J17")
 
-    ops = [
-        ("Rata-Rata Pengeluaran Operasional / Hari", avg_ops, "cur"),
-        ("Pengeluaran Operasional Seharusnya (Pagu) / Hari", pagu_ops_day, "cur"),
-        ("Selisih Pengeluaran Operasional / Hari", selisih_ops_day, "cur"),
-        ("", "", "blank"),
-        ("Dana Total Operasional", dana_ops, "cur_total"),
-        ("Penggunaan Dana Operasional", akt_ops, "cur_total"),
-        ("Sisa Dana Operasional", sisa_ops, "cur_total"),
-        ("% Penggunaan Dana Operasional", pct_ops, "pct"),
+    ops_items = [
+        ("Rata-Rata Pengeluaran Operasional / Hari", avg_ops, 6),
+        ("Pengeluaran Operasional Seharusnya (Pagu) / Hari", pagu_ops_day, 6),
+        ("Selisih Pengeluaran Operasional / Hari", selisih_ops_day, 6),
+        ("Dana Total Operasional", dana_ops, 7),
+        ("Penggunaan Dana Operasional", akt_ops, 7),
+        ("Sisa Dana Operasional", sisa_ops, 7),
+        ("% Penggunaan Dana Operasional", pct_ops, 8),
     ]
-    r = 19
-    for label, val, kind in ops:
-        rows[r] = [cell("", 0)] * 10
-        if kind == "blank":
-            r += 1; continue
-        rows[r][0] = cell(label, 27)
-        style = {"cur": 6, "cur_total": 7, "pct": 8}[kind]
-        rows[r][6] = cell(val, style)
+    for i, (label, val, style) in enumerate(ops_items):
+        r = 18 + i
+        rows[r] = [cell(label, 27)] + [cell("", 27)] * 5 + [cell(val, style)] + [cell("", style)] * 3
         merges += [f"A{r}:F{r}", f"G{r}:J{r}"]
-        r += 1
 
-    # --- SECTION C: RINGKASAN TOTAL (row 28) ---
-    rows[28] = [cell("C. RINGKASAN TOTAL", 25)] + [cell("", 25)] * 9
-    merges.append("A28:J28")
+    # --- SECTION C: TOTAL (row 26 header, 27-33 metrics) ---
+    rows[26] = [cell("C. RINGKASAN TOTAL", 25)] + [cell("", 25)] * 9
+    merges.append("A26:J26")
 
-    ring = [
-        ("Total Dana Anggaran", total_anggaran, "cur_total"),
-        ("Total Penggunaan Dana", total_penggunaan, "cur_total"),
-        ("Total Sisa Dana", total_sisa, "cur_total"),
-        ("% Penyerapan Anggaran", pct_penyerapan, "pct"),
-        ("", "", "blank"),
-        ("Rata-Rata Total Pengeluaran / Hari", avg_total_day, "cur"),
-        ("Pagu Total / Hari (Seharusnya)", pagu_total_day, "cur"),
-        ("Selisih Total / Hari", selisih_total_day, "cur"),
+    total_items = [
+        ("Total Dana Anggaran", total_anggaran, 7),
+        ("Total Penggunaan Dana", total_penggunaan, 7),
+        ("Total Sisa Dana", total_sisa, 7),
+        ("% Penyerapan Anggaran", pct_penyerapan, 8),
+        ("Rata-Rata Total Pengeluaran / Hari", avg_total_day, 6),
+        ("Pagu Total / Hari (Seharusnya)", pagu_total_day, 6),
+        ("Selisih Total / Hari", selisih_total_day, 6),
     ]
-    r = 29
-    for label, val, kind in ring:
-        rows[r] = [cell("", 0)] * 10
-        if kind == "blank":
-            r += 1; continue
-        rows[r][0] = cell(label, 27)
-        style = {"cur": 6, "cur_total": 7, "pct": 8}[kind]
-        rows[r][6] = cell(val, style)
+    for i, (label, val, style) in enumerate(total_items):
+        r = 27 + i
+        rows[r] = [cell(label, 27)] + [cell("", 27)] * 5 + [cell(val, style)] + [cell("", style)] * 3
         merges += [f"A{r}:F{r}", f"G{r}:J{r}"]
-        r += 1
 
-    # --- SECTION D: SURPLUS/DEFISIT (row 38) ---
-    rows[38] = [cell("D. ANALISIS SURPLUS / DEFISIT", 3)] + [cell("", 3)] * 9
-    merges.append("A38:J38")
+    # --- SECTION D: SURPLUS/DEFISIT (row 35 header, 36-50 metrics) ---
+    rows[35] = [cell("D. ANALISIS SURPLUS / DEFISIT", 3)] + [cell("", 3)] * 9
+    merges.append("A35:J35")
 
-    sd = [
-        ("Jumlah Hari SURPLUS (Pengeluaran < Pagu)", n_surplus, "int"),
-        ("Jumlah Hari DEFISIT (Pengeluaran > Pagu)", n_defisit, "int"),
-        ("Jumlah Hari AMAN (Libur / Pas Pagu)", n_aman, "int"),
-        ("Jumlah Hari Belum Input", n_belum, "int"),
-        ("", "", "blank"),
-        ("Total Akumulasi Surplus", tot_surplus, "cur_pos"),
-        ("Total Akumulasi Defisit", tot_defisit, "cur_neg"),
-        ("Net Surplus / Defisit", net_sd, "cur_total"),
-        ("% Surplus dari Total Anggaran", pct_surplus_total, "pct_pos"),
-        ("% Defisit dari Total Anggaran", pct_defisit_total, "pct_neg"),
-        ("Rasio Disiplin Anggaran (Hari Surplus / Aktif Non-Libur)", rasio_disiplin, "pct"),
-        ("", "", "blank"),
-        ("Pengeluaran Tertinggi / Hari (Rp)", max_r["total_aktual"], "cur_neg"),
-        ("   Tanggal Pengeluaran Tertinggi", max_r["date"], "date"),
-        ("Pengeluaran Terendah / Hari (Rp)", min_r["total_aktual"], "cur_pos"),
-        ("   Tanggal Pengeluaran Terendah", min_r["date"], "date"),
+    sd_items = [
+        ("Jumlah Hari SURPLUS (Pengeluaran < Pagu)", n_surplus, 20),
+        ("Jumlah Hari DEFISIT (Pengeluaran > Pagu)", n_defisit, 20),
+        ("Jumlah Hari AMAN (Libur / Pas Pagu)", n_aman, 20),
+        ("Jumlah Hari Belum Input", n_belum, 20),
+        ("Total Akumulasi Surplus", tot_surplus, 22),
+        ("Total Akumulasi Defisit", tot_defisit, 23),
+        ("Net Surplus / Defisit", net_sd, 7),
+        ("% Surplus dari Total Anggaran", pct_surplus_total, 30),
+        ("% Defisit dari Total Anggaran", pct_defisit_total, 31),
+        ("Rasio Disiplin Anggaran (Surplus / Aktif Non-Libur)", rasio_disiplin, 8),
+        ("Pengeluaran Tertinggi / Hari", max_r["total_aktual"], 23),
+        ("   Tanggal Pengeluaran Tertinggi", max_r["date"], 16),
+        ("Pengeluaran Terendah / Hari (berinput)", min_r["total_aktual"], 22),
+        ("   Tanggal Pengeluaran Terendah", min_r["date"], 16),
     ]
-    r = 39
-    for label, val, kind in sd:
-        rows[r] = [cell("", 0)] * 10
-        if kind == "blank":
-            r += 1; continue
-        rows[r][0] = cell(label, 27)
-        style_map = {"cur": 6, "cur_total": 7, "cur_pos": 22, "cur_neg": 23,
-                     "pct": 8, "pct_pos": 30, "pct_neg": 31, "int": 20, "date": 16}
-        if kind == "date":
-            rows[r][6] = cell(val, style_map[kind], d=True)
-        else:
-            rows[r][6] = cell(val, style_map[kind])
+    for i, (label, val, style) in enumerate(sd_items):
+        r = 36 + i
+        is_date = (style == 16)
+        rows[r] = [cell(label, 27)] + [cell("", 27)] * 5 + [cell(val, style, d=is_date)] + [cell("", style)] * 3
         merges += [f"A{r}:F{r}", f"G{r}:J{r}"]
-        r += 1
 
-    # --- CHART SECTION HEADER (row 58) ---
-    rows[58] = [cell("📊 VISUALISASI GRAFIK EKSEKUTIF", 3)] + [cell("", 3)] * 9
-    merges.append("A58:J58")
-    # Charts will occupy rows 59-142 (via drawing anchors)
+    # --- CHART HEADER BANNER (row 52) ---
+    rows[52] = [cell("📊 VISUALISASI GRAFIK EKSEKUTIF", 3)] + [cell("", 3)] * 9
+    merges.append("A52:J52")
 
-    # --- CATATAN (at very bottom, row 144) ---
+    # Chart 1 (Line) anchored at row 53. Add spacer rows with light bg so no white gaps
+    for r in [4, 16, 25, 34, 50]:
+        rows[r] = [cell("", 29)] * 10  # thin spacer
+
+    # --- FOOTER CATATAN (start at row 145 after all charts) ---
+    notes_start = 145
     notes = [
-        ("CATATAN & METODOLOGI:", 2),
-        (f"• Total Anggaran Rp {total_anggaran:,.0f} = SUM Dana Alokasi dari 8 file periode (sheet Pengaturan).", 0),
-        ("• Total Penggunaan = SUM aktual harian Pangan + Operasional (97 hari tercatat).", 0),
-        ("• VALIDASI SILANG: Total Anggaran − Total Penggunaan = Total Sisa = Rp 288.268.459 ✓", 0),
-        ("• % Penyerapan = Total Penggunaan / Total Anggaran.", 0),
-        ("• % Surplus = Total Akumulasi Hemat (hari SURPLUS saja) / Total Anggaran.", 0),
-        ("• Selisih POSITIF = HEMAT (surplus). Selisih NEGATIF = BOROS (defisit).", 0),
-        ("• Sumber: 8 file 'Total Akumulasi *.xlsx' di repository.", 0),
+        "CATATAN & METODOLOGI:",
+        f"• Total Anggaran Rp {total_anggaran:,.0f} = SUM Dana Alokasi dari 8 file periode (sheet Pengaturan).",
+        "• Total Penggunaan = SUM aktual harian Pangan + Operasional (97 hari tercatat).",
+        f"• VALIDASI SILANG: Total Anggaran − Total Penggunaan = Total Sisa = Rp {total_sisa:,.0f} ✓",
+        "• % Penyerapan = Total Penggunaan / Total Anggaran.",
+        "• % Surplus = Total Akumulasi Hemat (hari SURPLUS saja) / Total Anggaran.",
+        "• Selisih POSITIF = HEMAT (surplus). Selisih NEGATIF = BOROS (defisit).",
+        "• Sumber data: 8 file 'Total Akumulasi *.xlsx' di repository GitHub.",
     ]
-    base = 144
-    for i, (txt, st) in enumerate(notes):
-        rows[base + i] = [cell(txt, st)] + [cell("", 0)] * 9
-        merges.append(f"A{base+i}:J{base+i}")
+    for i, txt in enumerate(notes):
+        style = 2 if i == 0 else 29
+        rows[notes_start + i] = [cell(txt, style)] + [cell("", style)] * 9
+        merges.append(f"A{notes_start+i}:J{notes_start+i}")
 
-    cols = [(1, 42), (2, 10), (3, 12), (4, 12), (5, 10), (6, 12),
-            (7, 20), (8, 12), (9, 16), (10, 12)]
-    row_heights = {1: 38, 2: 22, 3: 22, 5: 28, 6: 46,
-                   8: 28, 18: 28, 28: 28, 38: 28, 58: 28}
+    # Column widths: uniform 10-col grid
+    cols = [(1, 22), (2, 12), (3, 13), (4, 13), (5, 10), (6, 11),
+            (7, 13), (8, 13), (9, 13), (10, 13)]
+
+    row_heights = {
+        1: 36, 2: 24, 3: 22,
+        4: 8,    # spacer
+        5: 28,   # KPI labels
+        6: 50,   # KPI values (big!)
+        8: 26,   # section A header
+        16: 8,   # spacer
+        17: 26,  # section B header
+        25: 8,   # spacer
+        26: 26,  # section C header
+        34: 8,   # spacer
+        35: 26,  # section D header
+        50: 8,   # spacer
+        52: 28,  # chart header
+    }
+    # All metric rows: standard height
+    for r in list(range(9, 16)) + list(range(18, 25)) + list(range(27, 34)) + list(range(36, 50)):
+        row_heights[r] = 22
     return rows, merges, cols, row_heights
 
 
@@ -714,235 +735,347 @@ def sheet_xml(rows, merges, cols, row_heights, drawing_rid=None, show_grid=True)
 
 
 # ============================================================
-# CHART XMLs
+# CHART XMLs (using Excel standard format with numCache)
 # ============================================================
 
-def chart_header(title_text, title_color="1F3864"):
+CHART_NS = ('xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" '
+            'xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" '
+            'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" '
+            'xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"')
+
+
+def chart_title(text, color="1F3864", size=1400):
     return (f'<c:title><c:tx><c:rich>'
-            f'<a:bodyPr rot="0" spcFirstLastPara="1" vertOverflow="ellipsis" wrap="square" anchor="ctr" anchorCtr="1"/>'
-            f'<a:lstStyle/>'
-            f'<a:p><a:pPr><a:defRPr sz="1400" b="1"><a:solidFill><a:srgbClr val="{title_color}"/></a:solidFill></a:defRPr></a:pPr>'
-            f'<a:r><a:rPr lang="id-ID" sz="1400" b="1"><a:solidFill><a:srgbClr val="{title_color}"/></a:solidFill></a:rPr>'
-            f'<a:t>{escape(title_text)}</a:t></a:r></a:p>'
-            f'</c:rich></c:tx><c:overlay val="0"/></c:title>'
-            f'<c:autoTitleDeleted val="0"/>')
+            f'<a:bodyPr/><a:lstStyle/>'
+            f'<a:p><a:pPr lvl="0"><a:defRPr b="1" i="0" sz="{size}">'
+            f'<a:solidFill><a:srgbClr val="{color}"/></a:solidFill>'
+            f'<a:latin typeface="Calibri"/></a:defRPr></a:pPr>'
+            f'<a:r><a:rPr b="1" i="0" sz="{size}">'
+            f'<a:solidFill><a:srgbClr val="{color}"/></a:solidFill>'
+            f'<a:latin typeface="Calibri"/></a:rPr>'
+            f'<a:t>{escape(text)}</a:t></a:r></a:p>'
+            f'</c:rich></c:tx><c:overlay val="0"/></c:title>')
 
 
-CHART_WRAP = ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
-              '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" '
-              'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" '
-              'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">')
+def num_cache(values, fmt="General"):
+    """Build numCache block so Excel can render even before opening source sheet."""
+    pts = "".join(f'<c:pt idx="{i}"><c:v>{v}</c:v></c:pt>' for i, v in enumerate(values))
+    return (f'<c:numCache><c:formatCode>{fmt}</c:formatCode>'
+            f'<c:ptCount val="{len(values)}"/>{pts}</c:numCache>')
 
 
-def chart_line(line):
-    """Chart 1: Tren Harian Pagu vs Aktual (Line)"""
-    xml = CHART_WRAP + '<c:chart>' + chart_header("TREN HARIAN: Pagu vs Pengeluaran Aktual")
-    xml += ('<c:plotArea><c:layout/>'
-            '<c:lineChart><c:grouping val="standard"/><c:varyColors val="0"/>'
-            f'<c:ser><c:idx val="0"/><c:order val="0"/>'
-            f'<c:tx><c:v>Total Pagu</c:v></c:tx>'
-            f'<c:spPr><a:ln w="28575"><a:solidFill><a:srgbClr val="548235"/></a:solidFill></a:ln></c:spPr>'
-            f'<c:marker><c:symbol val="none"/></c:marker>'
-            f'<c:cat><c:numRef><c:f>{line["cat"]}</c:f></c:numRef></c:cat>'
-            f'<c:val><c:numRef><c:f>{line["pagu"]}</c:f></c:numRef></c:val>'
-            f'<c:smooth val="0"/></c:ser>'
-            f'<c:ser><c:idx val="1"/><c:order val="1"/>'
-            f'<c:tx><c:v>Total Aktual</c:v></c:tx>'
-            f'<c:spPr><a:ln w="28575"><a:solidFill><a:srgbClr val="C00000"/></a:solidFill></a:ln></c:spPr>'
-            f'<c:marker><c:symbol val="circle"/><c:size val="5"/>'
-            f'<c:spPr><a:solidFill><a:srgbClr val="C00000"/></a:solidFill>'
-            f'<a:ln><a:solidFill><a:srgbClr val="C00000"/></a:solidFill></a:ln></c:spPr></c:marker>'
-            f'<c:cat><c:numRef><c:f>{line["cat"]}</c:f></c:numRef></c:cat>'
-            f'<c:val><c:numRef><c:f>{line["aktual"]}</c:f></c:numRef></c:val>'
-            f'<c:smooth val="0"/></c:ser>'
-            '<c:marker val="1"/><c:axId val="1"/><c:axId val="2"/></c:lineChart>'
-            '<c:catAx><c:axId val="1"/><c:scaling><c:orientation val="minMax"/></c:scaling>'
-            '<c:delete val="0"/><c:axPos val="b"/>'
-            '<c:numFmt formatCode="dd-mmm" sourceLinked="0"/>'
-            '<c:majorTickMark val="out"/><c:minorTickMark val="none"/>'
-            '<c:tickLblPos val="nextTo"/><c:crossAx val="2"/></c:catAx>'
-            '<c:valAx><c:axId val="2"/><c:scaling><c:orientation val="minMax"/></c:scaling>'
-            '<c:delete val="0"/><c:axPos val="l"/>'
-            '<c:numFmt formatCode="#,##0" sourceLinked="0"/>'
-            '<c:majorTickMark val="out"/><c:minorTickMark val="none"/>'
-            '<c:tickLblPos val="nextTo"/><c:crossAx val="1"/></c:valAx>'
-            '</c:plotArea>'
-            '<c:legend><c:legendPos val="b"/><c:overlay val="0"/></c:legend>'
-            '<c:plotVisOnly val="1"/><c:dispBlanksAs val="gap"/>'
-            '</c:chart></c:chartSpace>')
+def str_cache(values):
+    pts = "".join(f'<c:pt idx="{i}"><c:v>{escape(str(v))}</c:v></c:pt>' for i, v in enumerate(values))
+    return f'<c:strCache><c:ptCount val="{len(values)}"/>{pts}</c:strCache>'
+
+
+def build_chart_line(line_range, dates, pagu_vals, aktual_vals):
+    """Chart 1: Line - Tren Harian Pagu vs Aktual"""
+    # Format dates as "dd-MMM" strings for cat
+    cat_labels = []
+    for d in dates:
+        y, m, dd = map(int, d.split("-"))
+        cat_labels.append(f"{dd:02d}/{m:02d}")
+
+    xml = (f'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+           f'<c:chartSpace {CHART_NS}>'
+           f'<c:chart>'
+           + chart_title("TREN HARIAN: Pagu vs Pengeluaran Aktual (97 hari)") +
+           f'<c:plotArea><c:layout/>'
+           f'<c:lineChart><c:grouping val="standard"/><c:varyColors val="0"/>'
+           # Series 1: Pagu (green line)
+           f'<c:ser><c:idx val="0"/><c:order val="0"/>'
+           f'<c:tx><c:v>Total Pagu</c:v></c:tx>'
+           f'<c:spPr><a:ln w="28575" cmpd="sng"><a:solidFill><a:srgbClr val="548235"/></a:solidFill></a:ln></c:spPr>'
+           f'<c:marker><c:symbol val="none"/></c:marker>'
+           f'<c:cat><c:strRef><c:f>{line_range["cat"]}</c:f>{str_cache(cat_labels)}</c:strRef></c:cat>'
+           f'<c:val><c:numRef><c:f>{line_range["pagu"]}</c:f>{num_cache(pagu_vals)}</c:numRef></c:val>'
+           f'<c:smooth val="0"/></c:ser>'
+           # Series 2: Aktual (red line with markers)
+           f'<c:ser><c:idx val="1"/><c:order val="1"/>'
+           f'<c:tx><c:v>Total Aktual</c:v></c:tx>'
+           f'<c:spPr><a:ln w="28575" cmpd="sng"><a:solidFill><a:srgbClr val="C00000"/></a:solidFill></a:ln></c:spPr>'
+           f'<c:marker><c:symbol val="circle"/><c:size val="5"/>'
+           f'<c:spPr><a:solidFill><a:srgbClr val="C00000"/></a:solidFill>'
+           f'<a:ln><a:solidFill><a:srgbClr val="C00000"/></a:solidFill></a:ln></c:spPr></c:marker>'
+           f'<c:cat><c:strRef><c:f>{line_range["cat"]}</c:f>{str_cache(cat_labels)}</c:strRef></c:cat>'
+           f'<c:val><c:numRef><c:f>{line_range["aktual"]}</c:f>{num_cache(aktual_vals)}</c:numRef></c:val>'
+           f'<c:smooth val="0"/></c:ser>'
+           f'<c:marker val="1"/><c:axId val="111111"/><c:axId val="222222"/>'
+           f'</c:lineChart>'
+           f'<c:catAx><c:axId val="111111"/><c:scaling><c:orientation val="minMax"/></c:scaling>'
+           f'<c:delete val="0"/><c:axPos val="b"/>'
+           f'<c:majorTickMark val="out"/><c:minorTickMark val="none"/>'
+           f'<c:tickLblPos val="nextTo"/>'
+           f'<c:txPr><a:bodyPr rot="-2700000"/><a:lstStyle/>'
+           f'<a:p><a:pPr><a:defRPr sz="800"/></a:pPr><a:endParaRPr lang="id-ID"/></a:p></c:txPr>'
+           f'<c:crossAx val="222222"/></c:catAx>'
+           f'<c:valAx><c:axId val="222222"/><c:scaling><c:orientation val="minMax"/></c:scaling>'
+           f'<c:delete val="0"/><c:axPos val="l"/>'
+           f'<c:numFmt formatCode="#,##0" sourceLinked="0"/>'
+           f'<c:majorTickMark val="out"/><c:tickLblPos val="nextTo"/>'
+           f'<c:crossAx val="111111"/></c:valAx>'
+           f'</c:plotArea>'
+           f'<c:legend><c:legendPos val="b"/><c:overlay val="0"/>'
+           f'<c:txPr><a:bodyPr/><a:lstStyle/>'
+           f'<a:p><a:pPr><a:defRPr b="1" sz="1100"/></a:pPr><a:endParaRPr lang="id-ID"/></a:p></c:txPr>'
+           f'</c:legend>'
+           f'<c:plotVisOnly val="1"/><c:dispBlanksAs val="gap"/>'
+           f'</c:chart>'
+           f'<c:spPr><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill>'
+           f'<a:ln><a:solidFill><a:srgbClr val="BFBFBF"/></a:solidFill></a:ln></c:spPr>'
+           f'</c:chartSpace>')
     return xml
 
 
-def chart_doughnut(pie):
-    """Chart 2: Komposisi Penyerapan (Doughnut)"""
-    xml = CHART_WRAP + '<c:chart>' + chart_header("KOMPOSISI PENYERAPAN ANGGARAN")
-    xml += ('<c:plotArea><c:layout/>'
-            '<c:doughnutChart><c:varyColors val="1"/>'
-            '<c:ser><c:idx val="0"/><c:order val="0"/>'
-            '<c:dPt><c:idx val="0"/><c:bubble3D val="0"/>'
-            '<c:spPr><a:solidFill><a:srgbClr val="2E75B6"/></a:solidFill>'
-            '<a:ln w="19050"><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill></a:ln></c:spPr></c:dPt>'
-            '<c:dPt><c:idx val="1"/><c:bubble3D val="0"/>'
-            '<c:spPr><a:solidFill><a:srgbClr val="ED7D31"/></a:solidFill>'
-            '<a:ln w="19050"><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill></a:ln></c:spPr></c:dPt>'
-            '<c:dPt><c:idx val="2"/><c:bubble3D val="0"/>'
-            '<c:spPr><a:solidFill><a:srgbClr val="70AD47"/></a:solidFill>'
-            '<a:ln w="19050"><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill></a:ln></c:spPr></c:dPt>'
-            '<c:dLbls><c:txPr><a:bodyPr/><a:lstStyle/><a:p><a:pPr><a:defRPr sz="1100" b="1">'
-            '<a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill></a:defRPr></a:pPr>'
-            '<a:endParaRPr lang="id-ID"/></a:p></c:txPr>'
-            '<c:dLblPos val="ctr"/><c:showLegendKey val="0"/><c:showVal val="0"/>'
-            '<c:showCatName val="0"/><c:showSerName val="0"/><c:showPercent val="1"/>'
-            '<c:showBubbleSize val="0"/></c:dLbls>'
-            f'<c:cat><c:strRef><c:f>{pie["cat"]}</c:f></c:strRef></c:cat>'
-            f'<c:val><c:numRef><c:f>{pie["val"]}</c:f></c:numRef></c:val>'
-            '</c:ser>'
-            '<c:firstSliceAng val="0"/><c:holeSize val="50"/>'
-            '</c:doughnutChart></c:plotArea>'
-            '<c:legend><c:legendPos val="b"/><c:overlay val="0"/>'
-            '<c:txPr><a:bodyPr/><a:lstStyle/><a:p><a:pPr><a:defRPr sz="1100" b="1"/></a:pPr>'
-            '<a:endParaRPr lang="id-ID"/></a:p></c:txPr>'
-            '</c:legend>'
-            '<c:plotVisOnly val="1"/><c:dispBlanksAs val="gap"/>'
-            '</c:chart></c:chartSpace>')
+def build_chart_doughnut(pie_range, cats, vals):
+    """Chart 2: Doughnut - Komposisi Penyerapan"""
+    colors = ["2E75B6", "ED7D31", "70AD47"]
+    dpt_xml = "".join(
+        f'<c:dPt><c:idx val="{i}"/><c:bubble3D val="0"/>'
+        f'<c:spPr><a:solidFill><a:srgbClr val="{c}"/></a:solidFill>'
+        f'<a:ln w="19050"><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill></a:ln></c:spPr></c:dPt>'
+        for i, c in enumerate(colors))
+
+    xml = (f'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+           f'<c:chartSpace {CHART_NS}>'
+           f'<c:chart>'
+           + chart_title("KOMPOSISI PENYERAPAN ANGGARAN") +
+           f'<c:plotArea><c:layout/>'
+           f'<c:doughnutChart><c:varyColors val="1"/>'
+           f'<c:ser><c:idx val="0"/><c:order val="0"/>'
+           f'{dpt_xml}'
+           f'<c:dLbls>'
+           f'<c:txPr><a:bodyPr/><a:lstStyle/>'
+           f'<a:p><a:pPr><a:defRPr b="1" sz="1200"><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill></a:defRPr></a:pPr>'
+           f'<a:endParaRPr lang="id-ID"/></a:p></c:txPr>'
+           f'<c:dLblPos val="ctr"/>'
+           f'<c:showLegendKey val="0"/><c:showVal val="0"/>'
+           f'<c:showCatName val="0"/><c:showSerName val="0"/><c:showPercent val="1"/>'
+           f'<c:showBubbleSize val="0"/></c:dLbls>'
+           f'<c:cat><c:strRef><c:f>{pie_range["cat"]}</c:f>{str_cache(cats)}</c:strRef></c:cat>'
+           f'<c:val><c:numRef><c:f>{pie_range["val"]}</c:f>{num_cache(vals)}</c:numRef></c:val>'
+           f'</c:ser>'
+           f'<c:firstSliceAng val="0"/><c:holeSize val="55"/>'
+           f'</c:doughnutChart></c:plotArea>'
+           f'<c:legend><c:legendPos val="b"/><c:overlay val="0"/>'
+           f'<c:txPr><a:bodyPr/><a:lstStyle/>'
+           f'<a:p><a:pPr><a:defRPr b="1" sz="1100"/></a:pPr><a:endParaRPr lang="id-ID"/></a:p></c:txPr>'
+           f'</c:legend>'
+           f'<c:plotVisOnly val="1"/>'
+           f'</c:chart>'
+           f'<c:spPr><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill></c:spPr>'
+           f'</c:chartSpace>')
     return xml
 
 
-def chart_status_pie(status):
-    """Chart 3: Distribusi Status Hari (Pie 3D)"""
-    xml = CHART_WRAP + '<c:chart>' + chart_header("DISTRIBUSI STATUS HARIAN")
-    xml += ('<c:plotArea><c:layout/>'
-            '<c:pie3DChart><c:varyColors val="1"/>'
-            '<c:ser><c:idx val="0"/><c:order val="0"/>'
-            '<c:dPt><c:idx val="0"/><c:bubble3D val="0"/>'
-            '<c:spPr><a:solidFill><a:srgbClr val="70AD47"/></a:solidFill></c:spPr></c:dPt>'
-            '<c:dPt><c:idx val="1"/><c:bubble3D val="0"/>'
-            '<c:spPr><a:solidFill><a:srgbClr val="C00000"/></a:solidFill></c:spPr></c:dPt>'
-            '<c:dPt><c:idx val="2"/><c:bubble3D val="0"/>'
-            '<c:spPr><a:solidFill><a:srgbClr val="A6A6A6"/></a:solidFill></c:spPr></c:dPt>'
-            '<c:dLbls><c:txPr><a:bodyPr/><a:lstStyle/><a:p><a:pPr><a:defRPr sz="1100" b="1">'
-            '<a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill></a:defRPr></a:pPr>'
-            '<a:endParaRPr lang="id-ID"/></a:p></c:txPr>'
-            '<c:dLblPos val="ctr"/><c:showLegendKey val="0"/><c:showVal val="1"/>'
-            '<c:showCatName val="0"/><c:showSerName val="0"/><c:showPercent val="0"/>'
-            '<c:showBubbleSize val="0"/></c:dLbls>'
-            f'<c:cat><c:strRef><c:f>{status["cat"]}</c:f></c:strRef></c:cat>'
-            f'<c:val><c:numRef><c:f>{status["val"]}</c:f></c:numRef></c:val>'
-            '</c:ser>'
-            '</c:pie3DChart></c:plotArea>'
-            '<c:legend><c:legendPos val="b"/><c:overlay val="0"/>'
-            '<c:txPr><a:bodyPr/><a:lstStyle/><a:p><a:pPr><a:defRPr sz="1100" b="1"/></a:pPr>'
-            '<a:endParaRPr lang="id-ID"/></a:p></c:txPr>'
-            '</c:legend>'
-            '<c:plotVisOnly val="1"/><c:dispBlanksAs val="gap"/>'
-            '</c:chart></c:chartSpace>')
+def build_chart_status_bar(status_range, cats, vals):
+    """Chart 3: Column Bar - Distribusi Status Hari"""
+    colors = ["548235", "C00000", "808080"]  # green/red/gray
+    dpt_xml = "".join(
+        f'<c:dPt><c:idx val="{i}"/><c:invertIfNegative val="0"/><c:bubble3D val="0"/>'
+        f'<c:spPr><a:solidFill><a:srgbClr val="{c}"/></a:solidFill>'
+        f'<a:ln><a:solidFill><a:srgbClr val="000000"/></a:solidFill></a:ln></c:spPr></c:dPt>'
+        for i, c in enumerate(colors))
+
+    xml = (f'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+           f'<c:chartSpace {CHART_NS}>'
+           f'<c:chart>'
+           + chart_title("DISTRIBUSI STATUS HARIAN") +
+           f'<c:plotArea><c:layout/>'
+           f'<c:barChart><c:barDir val="col"/><c:grouping val="clustered"/><c:varyColors val="1"/>'
+           f'<c:ser><c:idx val="0"/><c:order val="0"/>'
+           f'<c:tx><c:v>Jumlah Hari</c:v></c:tx>'
+           f'{dpt_xml}'
+           f'<c:dLbls>'
+           f'<c:txPr><a:bodyPr/><a:lstStyle/>'
+           f'<a:p><a:pPr><a:defRPr b="1" sz="1400"><a:solidFill><a:srgbClr val="1F3864"/></a:solidFill></a:defRPr></a:pPr>'
+           f'<a:endParaRPr lang="id-ID"/></a:p></c:txPr>'
+           f'<c:dLblPos val="outEnd"/><c:showLegendKey val="0"/><c:showVal val="1"/>'
+           f'<c:showCatName val="0"/><c:showSerName val="0"/><c:showPercent val="0"/>'
+           f'<c:showBubbleSize val="0"/></c:dLbls>'
+           f'<c:cat><c:strRef><c:f>{status_range["cat"]}</c:f>{str_cache(cats)}</c:strRef></c:cat>'
+           f'<c:val><c:numRef><c:f>{status_range["val"]}</c:f>{num_cache(vals)}</c:numRef></c:val>'
+           f'</c:ser>'
+           f'<c:gapWidth val="100"/><c:axId val="333333"/><c:axId val="444444"/>'
+           f'</c:barChart>'
+           f'<c:catAx><c:axId val="333333"/><c:scaling><c:orientation val="minMax"/></c:scaling>'
+           f'<c:delete val="0"/><c:axPos val="b"/>'
+           f'<c:majorTickMark val="out"/><c:tickLblPos val="nextTo"/>'
+           f'<c:txPr><a:bodyPr/><a:lstStyle/>'
+           f'<a:p><a:pPr><a:defRPr b="1" sz="1100"/></a:pPr><a:endParaRPr lang="id-ID"/></a:p></c:txPr>'
+           f'<c:crossAx val="444444"/></c:catAx>'
+           f'<c:valAx><c:axId val="444444"/><c:scaling><c:orientation val="minMax"/></c:scaling>'
+           f'<c:delete val="0"/><c:axPos val="l"/>'
+           f'<c:majorTickMark val="out"/><c:tickLblPos val="nextTo"/>'
+           f'<c:crossAx val="333333"/></c:valAx>'
+           f'</c:plotArea>'
+           f'<c:plotVisOnly val="1"/>'
+           f'</c:chart>'
+           f'<c:spPr><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill></c:spPr>'
+           f'</c:chartSpace>')
     return xml
 
 
-def chart_weekly_bar(weekly):
-    """Chart 4: Pagu vs Aktual per Minggu (Clustered Bar)"""
-    xml = CHART_WRAP + '<c:chart>' + chart_header("PERBANDINGAN MINGGUAN: Pagu vs Aktual")
-    xml += ('<c:plotArea><c:layout/>'
-            '<c:barChart><c:barDir val="col"/><c:grouping val="clustered"/><c:varyColors val="0"/>'
-            f'<c:ser><c:idx val="0"/><c:order val="0"/>'
-            f'<c:tx><c:v>Total Pagu</c:v></c:tx>'
-            f'<c:spPr><a:solidFill><a:srgbClr val="2E75B6"/></a:solidFill>'
-            f'<a:ln><a:solidFill><a:srgbClr val="1F3864"/></a:solidFill></a:ln></c:spPr>'
-            f'<c:cat><c:strRef><c:f>{weekly["cat"]}</c:f></c:strRef></c:cat>'
-            f'<c:val><c:numRef><c:f>{weekly["pagu"]}</c:f></c:numRef></c:val>'
-            f'</c:ser>'
-            f'<c:ser><c:idx val="1"/><c:order val="1"/>'
-            f'<c:tx><c:v>Total Aktual</c:v></c:tx>'
-            f'<c:spPr><a:solidFill><a:srgbClr val="ED7D31"/></a:solidFill>'
-            f'<a:ln><a:solidFill><a:srgbClr val="843C0C"/></a:solidFill></a:ln></c:spPr>'
-            f'<c:cat><c:strRef><c:f>{weekly["cat"]}</c:f></c:strRef></c:cat>'
-            f'<c:val><c:numRef><c:f>{weekly["aktual"]}</c:f></c:numRef></c:val>'
-            f'</c:ser>'
-            '<c:gapWidth val="100"/><c:axId val="1"/><c:axId val="2"/></c:barChart>'
-            '<c:catAx><c:axId val="1"/><c:scaling><c:orientation val="minMax"/></c:scaling>'
-            '<c:delete val="0"/><c:axPos val="b"/><c:majorTickMark val="out"/>'
-            '<c:tickLblPos val="nextTo"/><c:crossAx val="2"/></c:catAx>'
-            '<c:valAx><c:axId val="2"/><c:scaling><c:orientation val="minMax"/></c:scaling>'
-            '<c:delete val="0"/><c:axPos val="l"/>'
-            '<c:numFmt formatCode="#,##0" sourceLinked="0"/>'
-            '<c:majorTickMark val="out"/><c:tickLblPos val="nextTo"/><c:crossAx val="1"/></c:valAx>'
-            '</c:plotArea>'
-            '<c:legend><c:legendPos val="b"/><c:overlay val="0"/></c:legend>'
-            '<c:plotVisOnly val="1"/><c:dispBlanksAs val="gap"/>'
-            '</c:chart></c:chartSpace>')
+def build_chart_weekly(weekly_range, cats, pagu_vals, aktual_vals):
+    """Chart 4: Clustered Column - Perbandingan Mingguan"""
+    xml = (f'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+           f'<c:chartSpace {CHART_NS}>'
+           f'<c:chart>'
+           + chart_title("PERBANDINGAN MINGGUAN: Pagu vs Aktual") +
+           f'<c:plotArea><c:layout/>'
+           f'<c:barChart><c:barDir val="col"/><c:grouping val="clustered"/><c:varyColors val="0"/>'
+           f'<c:ser><c:idx val="0"/><c:order val="0"/>'
+           f'<c:tx><c:v>Total Pagu</c:v></c:tx>'
+           f'<c:spPr><a:solidFill><a:srgbClr val="2E75B6"/></a:solidFill>'
+           f'<a:ln><a:solidFill><a:srgbClr val="1F3864"/></a:solidFill></a:ln></c:spPr>'
+           f'<c:cat><c:strRef><c:f>{weekly_range["cat"]}</c:f>{str_cache(cats)}</c:strRef></c:cat>'
+           f'<c:val><c:numRef><c:f>{weekly_range["pagu"]}</c:f>{num_cache(pagu_vals)}</c:numRef></c:val>'
+           f'</c:ser>'
+           f'<c:ser><c:idx val="1"/><c:order val="1"/>'
+           f'<c:tx><c:v>Total Aktual</c:v></c:tx>'
+           f'<c:spPr><a:solidFill><a:srgbClr val="ED7D31"/></a:solidFill>'
+           f'<a:ln><a:solidFill><a:srgbClr val="843C0C"/></a:solidFill></a:ln></c:spPr>'
+           f'<c:cat><c:strRef><c:f>{weekly_range["cat"]}</c:f>{str_cache(cats)}</c:strRef></c:cat>'
+           f'<c:val><c:numRef><c:f>{weekly_range["aktual"]}</c:f>{num_cache(aktual_vals)}</c:numRef></c:val>'
+           f'</c:ser>'
+           f'<c:gapWidth val="100"/><c:axId val="555555"/><c:axId val="666666"/>'
+           f'</c:barChart>'
+           f'<c:catAx><c:axId val="555555"/><c:scaling><c:orientation val="minMax"/></c:scaling>'
+           f'<c:delete val="0"/><c:axPos val="b"/><c:majorTickMark val="out"/>'
+           f'<c:tickLblPos val="nextTo"/>'
+           f'<c:txPr><a:bodyPr/><a:lstStyle/>'
+           f'<a:p><a:pPr><a:defRPr b="1" sz="1000"/></a:pPr><a:endParaRPr lang="id-ID"/></a:p></c:txPr>'
+           f'<c:crossAx val="666666"/></c:catAx>'
+           f'<c:valAx><c:axId val="666666"/><c:scaling><c:orientation val="minMax"/></c:scaling>'
+           f'<c:delete val="0"/><c:axPos val="l"/>'
+           f'<c:numFmt formatCode="#,##0" sourceLinked="0"/>'
+           f'<c:majorTickMark val="out"/><c:tickLblPos val="nextTo"/>'
+           f'<c:crossAx val="555555"/></c:valAx>'
+           f'</c:plotArea>'
+           f'<c:legend><c:legendPos val="b"/><c:overlay val="0"/>'
+           f'<c:txPr><a:bodyPr/><a:lstStyle/>'
+           f'<a:p><a:pPr><a:defRPr b="1" sz="1100"/></a:pPr><a:endParaRPr lang="id-ID"/></a:p></c:txPr>'
+           f'</c:legend>'
+           f'<c:plotVisOnly val="1"/>'
+           f'</c:chart>'
+           f'<c:spPr><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill></c:spPr>'
+           f'</c:chartSpace>')
     return xml
 
 
-def chart_stacked_comp(comp):
-    """Chart 5: Pangan vs Ops - Stacked (Terpakai vs Sisa)"""
-    xml = CHART_WRAP + '<c:chart>' + chart_header("ALOKASI vs PENGGUNAAN: Pangan & Operasional")
-    xml += ('<c:plotArea><c:layout/>'
-            '<c:barChart><c:barDir val="bar"/><c:grouping val="stacked"/><c:varyColors val="0"/>'
-            f'<c:ser><c:idx val="0"/><c:order val="0"/>'
-            f'<c:tx><c:v>Terpakai</c:v></c:tx>'
-            f'<c:spPr><a:solidFill><a:srgbClr val="ED7D31"/></a:solidFill></c:spPr>'
-            f'<c:cat><c:strRef><c:f>{comp["cat"]}</c:f></c:strRef></c:cat>'
-            f'<c:val><c:numRef><c:f>{comp["terpakai"]}</c:f></c:numRef></c:val>'
-            f'</c:ser>'
-            f'<c:ser><c:idx val="1"/><c:order val="1"/>'
-            f'<c:tx><c:v>Sisa</c:v></c:tx>'
-            f'<c:spPr><a:solidFill><a:srgbClr val="70AD47"/></a:solidFill></c:spPr>'
-            f'<c:cat><c:strRef><c:f>{comp["cat"]}</c:f></c:strRef></c:cat>'
-            f'<c:val><c:numRef><c:f>{comp["sisa"]}</c:f></c:numRef></c:val>'
-            f'</c:ser>'
-            '<c:overlap val="100"/><c:axId val="1"/><c:axId val="2"/></c:barChart>'
-            '<c:catAx><c:axId val="1"/><c:scaling><c:orientation val="minMax"/></c:scaling>'
-            '<c:delete val="0"/><c:axPos val="l"/><c:majorTickMark val="out"/>'
-            '<c:tickLblPos val="nextTo"/><c:crossAx val="2"/></c:catAx>'
-            '<c:valAx><c:axId val="2"/><c:scaling><c:orientation val="minMax"/></c:scaling>'
-            '<c:delete val="0"/><c:axPos val="b"/>'
-            '<c:numFmt formatCode="#,##0" sourceLinked="0"/>'
-            '<c:majorTickMark val="out"/><c:tickLblPos val="nextTo"/><c:crossAx val="1"/></c:valAx>'
-            '</c:plotArea>'
-            '<c:legend><c:legendPos val="b"/><c:overlay val="0"/></c:legend>'
-            '<c:plotVisOnly val="1"/><c:dispBlanksAs val="gap"/>'
-            '</c:chart></c:chartSpace>')
+def build_chart_stacked(comp_range, cats, terpakai_vals, sisa_vals):
+    """Chart 5: Stacked Horizontal Bar - Pangan vs Ops"""
+    xml = (f'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+           f'<c:chartSpace {CHART_NS}>'
+           f'<c:chart>'
+           + chart_title("ALOKASI vs PENGGUNAAN: Pangan & Operasional") +
+           f'<c:plotArea><c:layout/>'
+           f'<c:barChart><c:barDir val="bar"/><c:grouping val="stacked"/><c:varyColors val="0"/>'
+           f'<c:ser><c:idx val="0"/><c:order val="0"/>'
+           f'<c:tx><c:v>Terpakai</c:v></c:tx>'
+           f'<c:spPr><a:solidFill><a:srgbClr val="ED7D31"/></a:solidFill></c:spPr>'
+           f'<c:dLbls><c:numFmt formatCode="#,##0" sourceLinked="0"/>'
+           f'<c:txPr><a:bodyPr/><a:lstStyle/>'
+           f'<a:p><a:pPr><a:defRPr b="1" sz="1000"><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill></a:defRPr></a:pPr>'
+           f'<a:endParaRPr lang="id-ID"/></a:p></c:txPr>'
+           f'<c:dLblPos val="ctr"/><c:showLegendKey val="0"/><c:showVal val="1"/>'
+           f'<c:showCatName val="0"/><c:showSerName val="0"/><c:showPercent val="0"/>'
+           f'<c:showBubbleSize val="0"/></c:dLbls>'
+           f'<c:cat><c:strRef><c:f>{comp_range["cat"]}</c:f>{str_cache(cats)}</c:strRef></c:cat>'
+           f'<c:val><c:numRef><c:f>{comp_range["terpakai"]}</c:f>{num_cache(terpakai_vals)}</c:numRef></c:val>'
+           f'</c:ser>'
+           f'<c:ser><c:idx val="1"/><c:order val="1"/>'
+           f'<c:tx><c:v>Sisa</c:v></c:tx>'
+           f'<c:spPr><a:solidFill><a:srgbClr val="70AD47"/></a:solidFill></c:spPr>'
+           f'<c:dLbls><c:numFmt formatCode="#,##0" sourceLinked="0"/>'
+           f'<c:txPr><a:bodyPr/><a:lstStyle/>'
+           f'<a:p><a:pPr><a:defRPr b="1" sz="1000"><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill></a:defRPr></a:pPr>'
+           f'<a:endParaRPr lang="id-ID"/></a:p></c:txPr>'
+           f'<c:dLblPos val="ctr"/><c:showLegendKey val="0"/><c:showVal val="1"/>'
+           f'<c:showCatName val="0"/><c:showSerName val="0"/><c:showPercent val="0"/>'
+           f'<c:showBubbleSize val="0"/></c:dLbls>'
+           f'<c:cat><c:strRef><c:f>{comp_range["cat"]}</c:f>{str_cache(cats)}</c:strRef></c:cat>'
+           f'<c:val><c:numRef><c:f>{comp_range["sisa"]}</c:f>{num_cache(sisa_vals)}</c:numRef></c:val>'
+           f'</c:ser>'
+           f'<c:overlap val="100"/><c:axId val="777777"/><c:axId val="888888"/>'
+           f'</c:barChart>'
+           f'<c:catAx><c:axId val="777777"/><c:scaling><c:orientation val="minMax"/></c:scaling>'
+           f'<c:delete val="0"/><c:axPos val="l"/><c:majorTickMark val="out"/>'
+           f'<c:tickLblPos val="nextTo"/>'
+           f'<c:txPr><a:bodyPr/><a:lstStyle/>'
+           f'<a:p><a:pPr><a:defRPr b="1" sz="1200"/></a:pPr><a:endParaRPr lang="id-ID"/></a:p></c:txPr>'
+           f'<c:crossAx val="888888"/></c:catAx>'
+           f'<c:valAx><c:axId val="888888"/><c:scaling><c:orientation val="minMax"/></c:scaling>'
+           f'<c:delete val="0"/><c:axPos val="b"/>'
+           f'<c:numFmt formatCode="#,##0" sourceLinked="0"/>'
+           f'<c:majorTickMark val="out"/><c:tickLblPos val="nextTo"/>'
+           f'<c:crossAx val="777777"/></c:valAx>'
+           f'</c:plotArea>'
+           f'<c:legend><c:legendPos val="b"/><c:overlay val="0"/>'
+           f'<c:txPr><a:bodyPr/><a:lstStyle/>'
+           f'<a:p><a:pPr><a:defRPr b="1" sz="1100"/></a:pPr><a:endParaRPr lang="id-ID"/></a:p></c:txPr>'
+           f'</c:legend>'
+           f'<c:plotVisOnly val="1"/>'
+           f'</c:chart>'
+           f'<c:spPr><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill></c:spPr>'
+           f'</c:chartSpace>')
     return xml
 
 
 # ============================================================
-# DRAWING XML (anchor 5 charts on Dashboard)
+# DRAWING (oneCellAnchor with explicit sizes)
 # ============================================================
-def build_drawing():
-    """Layout of charts on Dashboard (row-based anchors):
-       Chart 1 (Line)         : rows 59-80, cols A-J     [full width]
-       Chart 2 (Doughnut)     : rows 81-102, cols A-E    [left half]
-       Chart 3 (Status Pie)   : rows 81-102, cols F-J    [right half]
-       Chart 4 (Weekly Bar)   : rows 103-124, cols A-J   [full width]
-       Chart 5 (Stacked Comp) : rows 125-142, cols A-J   [full width]
+def build_drawing_xml_v3(n_records, weekly_count):
     """
+    Anchor charts on Dashboard sheet with oneCellAnchor (explicit pixel size).
+    EMU units: 1 cm = 360000 EMU
+    Chart sizes (width × height):
+        Full width : 9.5M × 4.5M (~19cm × ~9cm)
+        Half width : 4.5M × 4.5M
+    """
+    EMU_FW = 9144000   # ~full width of 10 cols
+    EMU_HW = 4572000   # half width
+    EMU_H_STD = 4572000  # standard height
+    EMU_H_TALL = 5486400  # tall for line chart
+
+    # Positions in terms of anchor rows (0-indexed)
+    # Dashboard layout: sections end at row 50, chart header row 51, charts start row 53
     anchors = [
-        # chart, from_col, from_row, to_col, to_row, rid
-        (1, 0, 59, 10, 80),   # Line - full width
-        (2, 0, 81, 5, 102),   # Doughnut - left half
-        (3, 5, 81, 10, 102),  # Status Pie - right half
-        (4, 0, 103, 10, 124), # Weekly Bar - full width
-        (5, 0, 125, 10, 142), # Stacked - full width
+        # (chart_id, from_col, from_row_0indexed, cx, cy)
+        (1, 0, 52, EMU_FW, EMU_H_TALL),   # Line - full width, starts row 53 (1-indexed)
+        (2, 0, 75, EMU_HW, EMU_H_STD),    # Doughnut - left half, row 76
+        (3, 5, 75, EMU_HW, EMU_H_STD),    # Status Bar - right half, row 76
+        (4, 0, 98, EMU_FW, EMU_H_STD),    # Weekly bar - row 99
+        (5, 0, 121, EMU_FW, EMU_H_STD),   # Stacked - row 122
     ]
-    xml = ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
+
+    xml = ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
            '<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" '
            'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" '
-           'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">')
-    for idx, (cid, fc, fr, tc, tr) in enumerate(anchors, start=1):
-        xml += (f'<xdr:twoCellAnchor>'
-                f'<xdr:from><xdr:col>{fc}</xdr:col><xdr:colOff>0</xdr:colOff>'
-                f'<xdr:row>{fr}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from>'
-                f'<xdr:to><xdr:col>{tc}</xdr:col><xdr:colOff>0</xdr:colOff>'
-                f'<xdr:row>{tr}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to>'
+           'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" '
+           'xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart">')
+
+    for i, (cid, fc, fr, cx, cy) in enumerate(anchors, start=1):
+        xml += (f'<xdr:oneCellAnchor>'
+                f'<xdr:from>'
+                f'<xdr:col>{fc}</xdr:col><xdr:colOff>0</xdr:colOff>'
+                f'<xdr:row>{fr}</xdr:row><xdr:rowOff>0</xdr:rowOff>'
+                f'</xdr:from>'
+                f'<xdr:ext cx="{cx}" cy="{cy}"/>'
                 f'<xdr:graphicFrame macro="">'
                 f'<xdr:nvGraphicFramePr>'
-                f'<xdr:cNvPr id="{idx+1}" name="Chart {cid}"/>'
-                f'<xdr:cNvGraphicFramePr/></xdr:nvGraphicFramePr>'
+                f'<xdr:cNvPr id="{i+10}" name="Chart {cid}"/>'
+                f'<xdr:cNvGraphicFramePr/>'
+                f'</xdr:nvGraphicFramePr>'
                 f'<xdr:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/></xdr:xfrm>'
-                f'<a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/chart">'
+                f'<a:graphic>'
+                f'<a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/chart">'
                 f'<c:chart xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" r:id="rId{cid}"/>'
-                f'</a:graphicData></a:graphic></xdr:graphicFrame>'
-                f'<xdr:clientData/></xdr:twoCellAnchor>')
+                f'</a:graphicData></a:graphic>'
+                f'</xdr:graphicFrame>'
+                f'<xdr:clientData fLocksWithSheet="0"/>'
+                f'</xdr:oneCellAnchor>')
     xml += '</xdr:wsDr>'
     return xml
 
@@ -1037,13 +1170,36 @@ def main():
         z.writestr("xl/worksheets/sheet4.xml",
                    sheet_xml(c_rows, c_merges, c_cols, c_heights))
 
-        z.writestr("xl/drawings/drawing1.xml", build_drawing())
+        z.writestr("xl/drawings/drawing1.xml", build_drawing_xml_v3(len(records), len(weekly_list)))
         z.writestr("xl/drawings/_rels/drawing1.xml.rels", DRAWING_RELS)
-        z.writestr("xl/charts/chart1.xml", chart_line(ranges["line"]))
-        z.writestr("xl/charts/chart2.xml", chart_doughnut(ranges["pie"]))
-        z.writestr("xl/charts/chart3.xml", chart_status_pie(ranges["status"]))
-        z.writestr("xl/charts/chart4.xml", chart_weekly_bar(ranges["weekly"]))
-        z.writestr("xl/charts/chart5.xml", chart_stacked_comp(ranges["comp"]))
+        # Line chart: pass date labels & values for numCache
+        dates = [r["date"] for r in records]
+        pagu_vals = [r["total_pagu"] for r in records]
+        aktual_vals = [r["total_aktual"] for r in records]
+        z.writestr("xl/charts/chart1.xml",
+                   build_chart_line(ranges["line"], dates, pagu_vals, aktual_vals))
+        # Doughnut: 3 slices
+        z.writestr("xl/charts/chart2.xml",
+                   build_chart_doughnut(ranges["pie"],
+                                        ["Penggunaan Pangan", "Penggunaan Operasional", "Sisa Dana"],
+                                        [akt_pangan, akt_ops, total_sisa]))
+        # Status bar: 3 bars
+        z.writestr("xl/charts/chart3.xml",
+                   build_chart_status_bar(ranges["status"],
+                                          ["SURPLUS", "DEFISIT", "AMAN/LIBUR"],
+                                          [n_surplus, n_defisit, n_aman]))
+        # Weekly: clustered
+        week_cats = [f"Mg-{i+1}" for i in range(len(weekly_list))]
+        week_pagu = [w["total_pagu"] for w in weekly_list]
+        week_aktual = [w["total_aktual"] for w in weekly_list]
+        z.writestr("xl/charts/chart4.xml",
+                   build_chart_weekly(ranges["weekly"], week_cats, week_pagu, week_aktual))
+        # Stacked: 2 categories
+        z.writestr("xl/charts/chart5.xml",
+                   build_chart_stacked(ranges["comp"],
+                                       ["Pangan", "Operasional"],
+                                       [akt_pangan, akt_ops],
+                                       [sisa_pangan, sisa_ops]))
 
     print(f"\nOK -> {OUTPUT}")
     print(f"Size: {os.path.getsize(OUTPUT):,} bytes")
