@@ -3,507 +3,223 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Dashboard Akumulasi SPPG Battuwinangun | Sep–Des 2025</title>
+<title>Dashboard Akumulasi SPPG Battuwinangun | Sep-Des 2025</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 <style>
-  :root {
-    --navy:   #1F3864;
-    --blue:   #2E75B6;
-    --teal:   #0F6E8E;
-    --emerald:#217346;
-    --orange: #ED7D31;
-    --purple: #7030A0;
-    --gold:   #F4B942;
-    --red:    #C0392B;
-    --green:  #27AE60;
-    --light:  #EEF3FB;
-    --white:  #FFFFFF;
-    --gray:   #6C757D;
-    --bg:     #F0F4FA;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: var(--bg);
-    color: #222;
-    min-height: 100vh;
-  }
-
-  /* ── HEADER ── */
-  .header {
-    background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 60%, var(--teal) 100%);
-    color: white;
-    padding: 28px 40px 22px;
-    display: flex; align-items: center; justify-content: space-between;
-    box-shadow: 0 4px 20px rgba(31,56,100,.4);
-  }
-  .header-left h1 { font-size: 1.75rem; font-weight: 800; letter-spacing: .5px; }
-  .header-left p  { font-size: .92rem; opacity: .85; margin-top: 4px; }
-  .header-badge {
-    background: rgba(255,255,255,.18);
-    border: 1.5px solid rgba(255,255,255,.35);
-    border-radius: 10px;
-    padding: 10px 20px;
-    text-align: center;
-    backdrop-filter: blur(4px);
-  }
-  .header-badge .val { font-size: 1.6rem; font-weight: 800; }
-  .header-badge .lbl { font-size: .75rem; opacity: .8; }
-
-  /* ── CONTAINER ── */
-  .container { max-width: 1400px; margin: 0 auto; padding: 28px 24px 48px; }
-
-  /* ── SECTION TITLE ── */
-  .section-title {
-    display: flex; align-items: center; gap: 10px;
-    font-size: 1.05rem; font-weight: 700;
-    color: var(--navy);
-    margin: 32px 0 14px;
-    border-left: 4px solid var(--blue);
-    padding-left: 12px;
-  }
-  .section-title span { font-size: 1.25rem; }
-
-  /* ── KPI GRID ── */
-  .kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
-    margin-bottom: 8px;
-  }
-  .kpi-card {
-    background: white;
-    border-radius: 14px;
-    padding: 20px 22px 16px;
-    box-shadow: 0 2px 12px rgba(0,0,0,.07);
-    position: relative; overflow: hidden;
-    transition: transform .2s, box-shadow .2s;
-  }
-  .kpi-card:hover { transform: translateY(-3px); box-shadow: 0 6px 22px rgba(0,0,0,.12); }
-  .kpi-card::before {
-    content: '';
-    position: absolute; top: 0; left: 0; right: 0; height: 4px;
-  }
-  .kpi-card.navy::before   { background: var(--navy); }
-  .kpi-card.blue::before   { background: var(--blue); }
-  .kpi-card.green::before  { background: var(--green); }
-  .kpi-card.orange::before { background: var(--orange); }
-  .kpi-card.purple::before { background: var(--purple); }
-  .kpi-card.teal::before   { background: var(--teal); }
-  .kpi-card.gold::before   { background: var(--gold); }
-  .kpi-icon { font-size: 1.8rem; margin-bottom: 8px; }
-  .kpi-label { font-size: .72rem; font-weight: 600; color: var(--gray); text-transform: uppercase; letter-spacing: .6px; }
-  .kpi-value { font-size: 1.35rem; font-weight: 800; color: var(--navy); margin-top: 4px; line-height: 1.2; }
-  .kpi-value.green { color: var(--green); }
-  .kpi-value.red   { color: var(--red); }
-  .kpi-sub { font-size: .75rem; color: var(--gray); margin-top: 5px; }
-  .kpi-badge {
-    display: inline-block;
-    background: var(--light);
-    color: var(--navy);
-    border-radius: 20px;
-    padding: 2px 10px;
-    font-size: .72rem;
-    font-weight: 700;
-    margin-top: 6px;
-  }
-  .kpi-badge.good { background: #e6f9ee; color: var(--green); }
-  .kpi-badge.warn { background: #fff3e0; color: var(--orange); }
-  .kpi-badge.bad  { background: #fde8e8; color: var(--red); }
-
-  /* ── CHART CARDS ── */
-  .chart-grid-2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-  }
-  .chart-grid-3 {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 20px;
-  }
-  .chart-grid-12 {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 20px;
-  }
-  .chart-grid-21 {
-    display: grid;
-    grid-template-columns: 1fr 2fr;
-    gap: 20px;
-  }
-  @media (max-width: 900px) {
-    .chart-grid-2, .chart-grid-3, .chart-grid-12, .chart-grid-21 {
-      grid-template-columns: 1fr;
-    }
-  }
-  .chart-card {
-    background: white;
-    border-radius: 14px;
-    padding: 22px 22px 18px;
-    box-shadow: 0 2px 12px rgba(0,0,0,.07);
-  }
-  .chart-card h3 {
-    font-size: .9rem; font-weight: 700;
-    color: var(--navy); margin-bottom: 16px;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .chart-card h3 .dot {
-    width: 10px; height: 10px; border-radius: 50%;
-    display: inline-block;
-  }
-  .chart-wrap { position: relative; }
-
-  /* ── PROGRESS BARS ── */
-  .prog-row { margin-bottom: 12px; }
-  .prog-label { display: flex; justify-content: space-between; font-size: .8rem; margin-bottom: 5px; font-weight: 600; color: #444; }
-  .prog-bar { height: 12px; background: #e8edf5; border-radius: 99px; overflow: hidden; }
-  .prog-fill { height: 100%; border-radius: 99px; transition: width 1s ease; }
-
-  /* ── STAT TABLE ── */
-  .stat-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
-  .stat-table th { background: var(--navy); color: white; padding: 8px 12px; text-align: left; font-weight: 600; }
-  .stat-table th:last-child { text-align: right; }
-  .stat-table td { padding: 7px 12px; border-bottom: 1px solid #eef1f8; }
-  .stat-table td:last-child { text-align: right; font-weight: 700; }
-  .stat-table tr:hover td { background: var(--light); }
-  .stat-table tr:last-child td { background: #fafbff; font-weight: 800; }
-  .pill {
-    display: inline-block; border-radius: 20px; padding: 2px 10px;
-    font-size: .72rem; font-weight: 700;
-  }
-  .pill.surplus { background: #e6f9ee; color: var(--green); }
-  .pill.defisit { background: #fde8e8; color: var(--red); }
-  .pill.aman    { background: #f0f0f0; color: var(--gray); }
-
-  /* ── FOOTER ── */
-  .footer {
-    text-align: center; color: var(--gray);
-    font-size: .78rem; margin-top: 40px; padding-top: 20px;
-    border-top: 1px solid #dde3ef;
-  }
-
-  /* ── DIVIDER ── */
-  .divider { height: 1px; background: #dde3ef; margin: 8px 0 4px; }
-
-  /* ── SUMMARY STRIP ── */
-  .summary-strip {
-    display: grid; grid-template-columns: repeat(4, 1fr);
-    gap: 12px; margin-bottom: 6px;
-  }
-  .strip-item {
-    background: white; border-radius: 10px;
-    padding: 14px 16px;
-    box-shadow: 0 1px 6px rgba(0,0,0,.06);
-    border-left: 4px solid var(--blue);
-    display: flex; flex-direction: column; gap: 4px;
-  }
-  .strip-item.green { border-color: var(--green); }
-  .strip-item.red   { border-color: var(--red); }
-  .strip-item.gold  { border-color: var(--gold); }
-  .strip-label { font-size: .7rem; font-weight: 600; color: var(--gray); text-transform: uppercase; }
-  .strip-val   { font-size: 1.1rem; font-weight: 800; color: var(--navy); }
-  .strip-val.green { color: var(--green); }
-  .strip-val.red   { color: var(--red); }
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',sans-serif;background:#F0F4FA;color:#222;}
+.header{background:linear-gradient(135deg,#1F3864,#2E75B6,#0F6E8E);color:#fff;padding:24px 36px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 20px rgba(31,56,100,.4);}
+.header h1{font-size:1.6rem;font-weight:800;}
+.header p{font-size:.88rem;opacity:.85;margin-top:4px;}
+.badge{background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.35);border-radius:10px;padding:10px 22px;text-align:center;}
+.badge .bval{font-size:1.7rem;font-weight:800;}
+.badge .blbl{font-size:.72rem;opacity:.8;}
+.container{max-width:1380px;margin:0 auto;padding:24px 20px 48px;}
+.sec{font-size:1rem;font-weight:700;color:#1F3864;margin:28px 0 12px;border-left:4px solid #2E75B6;padding-left:12px;display:flex;align-items:center;gap:8px;}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(195px,1fr));gap:14px;margin-bottom:6px;}
+.kpi{background:#fff;border-radius:13px;padding:18px 20px 14px;box-shadow:0 2px 10px rgba(0,0,0,.07);position:relative;overflow:hidden;transition:transform .2s;}
+.kpi:hover{transform:translateY(-3px);}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;}
+.kpi.c1::before{background:#1F3864;} .kpi.c2::before{background:#2E75B6;} .kpi.c3::before{background:#27AE60;}
+.kpi.c4::before{background:#ED7D31;} .kpi.c5::before{background:#0F6E8E;} .kpi.c6::before{background:#7030A0;}
+.kpi.c7::before{background:#F4B942;} .kpi.c8::before{background:#C0392B;}
+.kico{font-size:1.7rem;margin-bottom:6px;}
+.klbl{font-size:.68rem;font-weight:600;color:#6C757D;text-transform:uppercase;letter-spacing:.5px;}
+.kval{font-size:1.28rem;font-weight:800;color:#1F3864;margin-top:3px;}
+.kval.g{color:#27AE60;} .kval.r{color:#C0392B;}
+.ksub{font-size:.72rem;color:#6C757D;margin-top:4px;}
+.kbadge{display:inline-block;border-radius:20px;padding:2px 10px;font-size:.68rem;font-weight:700;margin-top:5px;background:#EEF3FB;color:#1F3864;}
+.kbadge.good{background:#e6f9ee;color:#27AE60;} .kbadge.warn{background:#fff3e0;color:#ED7D31;} .kbadge.bad{background:#fde8e8;color:#C0392B;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;}
+.g21{display:grid;grid-template-columns:2fr 1fr;gap:18px;}
+@media(max-width:860px){.g2,.g3,.g21{grid-template-columns:1fr;}}
+.card{background:#fff;border-radius:13px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,.07);}
+.card h3{font-size:.88rem;font-weight:700;color:#1F3864;margin-bottom:14px;display:flex;align-items:center;gap:7px;}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
+.prog-row{margin-bottom:11px;}
+.prog-lbl{display:flex;justify-content:space-between;font-size:.78rem;font-weight:600;color:#444;margin-bottom:4px;}
+.prog-bar{height:11px;background:#e8edf5;border-radius:99px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:99px;}
+.tbl{width:100%;border-collapse:collapse;font-size:.8rem;}
+.tbl th{background:#1F3864;color:#fff;padding:7px 11px;text-align:left;font-weight:600;}
+.tbl td{padding:6px 11px;border-bottom:1px solid #eef1f8;}
+.tbl td:last-child{text-align:right;font-weight:700;}
+.tbl tr:hover td{background:#EEF3FB;}
+.pill{display:inline-block;border-radius:20px;padding:2px 9px;font-size:.68rem;font-weight:700;}
+.pill.s{background:#e6f9ee;color:#27AE60;} .pill.d{background:#fde8e8;color:#C0392B;}
+.strip{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;}
+.si{background:#f7f9fd;border-radius:9px;padding:12px 14px;border-left:3px solid #2E75B6;}
+.si.g{border-color:#27AE60;} .si.r{border-color:#C0392B;}
+.slbl{font-size:.67rem;font-weight:600;color:#6C757D;text-transform:uppercase;}
+.sval{font-size:1.05rem;font-weight:800;color:#1F3864;}
+.sval.g{color:#27AE60;} .sval.r{color:#C0392B;}
+.footer{text-align:center;color:#6C757D;font-size:.75rem;margin-top:36px;padding-top:18px;border-top:1px solid #dde3ef;}
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
 <div class="header">
-  <div class="header-left">
-    <h1>🏛️ Dashboard Akumulasi Laporan Keuangan</h1>
-    <p>SPPG Battuwinangun &nbsp;|&nbsp; Program Pemenuhan Gizi Nasional &nbsp;|&nbsp; 01 September – 31 Desember 2025</p>
+  <div>
+    <h1>&#127963; Dashboard Akumulasi Laporan Keuangan</h1>
+    <p>SPPG Battuwinangun &nbsp;|&nbsp; Program Pemenuhan Gizi Nasional &nbsp;|&nbsp; 01 September &#8211; 31 Desember 2025</p>
   </div>
-  <div class="header-badge">
-    <div class="val">91.73%</div>
-    <div class="lbl">Total Penyerapan Anggaran</div>
+  <div class="badge">
+    <div class="bval">91.73%</div>
+    <div class="blbl">Total Penyerapan Anggaran</div>
   </div>
 </div>
 
 <div class="container">
 
-  <!-- ════════════════════════════════════
-       KPI UTAMA
-  ════════════════════════════════════ -->
-  <div class="section-title"><span>💰</span> Ringkasan Keuangan Utama</div>
-  <div class="kpi-grid">
+<!-- KPI -->
+<div class="sec">&#128176; Ringkasan Keuangan Utama</div>
+<div class="kpi-grid">
+  <div class="kpi c1"><div class="kico">&#127970;</div><div class="klbl">Total Anggaran</div><div class="kval">Rp 3,487 M</div><div class="ksub">Rp 3.487.166.000</div><span class="kbadge">Pangan + Operasional</span></div>
+  <div class="kpi c2"><div class="kico">&#128202;</div><div class="klbl">Total Terserap</div><div class="kval">Rp 3,199 M</div><div class="ksub">Rp 3.198.897.541</div><span class="kbadge good">91.73% dari anggaran</span></div>
+  <div class="kpi c3"><div class="kico">&#128181;</div><div class="klbl">Sisa Dana</div><div class="kval g">Rp 288,3 Jt</div><div class="ksub">Rp 288.268.459</div><span class="kbadge good">8.27% efisiensi</span></div>
+  <div class="kpi c4"><div class="kico">&#127807;</div><div class="klbl">Dana Pangan Terserap</div><div class="kval">Rp 2,085 M</div><div class="ksub">dari Rp 2.276.180.000</div><span class="kbadge warn">91.59%</span></div>
+  <div class="kpi c5"><div class="kico">&#9881;&#65039;</div><div class="klbl">Dana Ops Terserap</div><div class="kval">Rp 1,114 M</div><div class="ksub">dari Rp 1.210.986.000</div><span class="kbadge warn">92.00%</span></div>
+  <div class="kpi c6"><div class="kico">&#128197;</div><div class="klbl">Hari Tercatat</div><div class="kval">97 Hari</div><div class="ksub">84 hari aktif input</div><span class="kbadge">1 Sep &#8211; 31 Des 2025</span></div>
+  <div class="kpi c7"><div class="kico">&#9989;</div><div class="klbl">Hari Surplus</div><div class="kval g">67 Hari</div><div class="ksub">Pengeluaran &lt; Pagu</div><span class="kbadge good">Disiplin anggaran</span></div>
+  <div class="kpi c8"><div class="kico">&#9888;&#65039;</div><div class="klbl">Hari Defisit</div><div class="kval r">17 Hari</div><div class="ksub">Pengeluaran &gt; Pagu</div><span class="kbadge bad">Perlu perhatian</span></div>
+</div>
 
-    <div class="kpi-card navy">
-      <div class="kpi-icon">🏦</div>
-      <div class="kpi-label">Total Anggaran</div>
-      <div class="kpi-value">Rp 3,487 M</div>
-      <div class="kpi-sub">Rp 3.487.166.000</div>
-      <span class="kpi-badge">Pangan + Operasional</span>
+<!-- PROGRESS + DONUT -->
+<div class="sec">&#128200; Progress Penyerapan Anggaran</div>
+<div class="g2">
+  <div class="card">
+    <h3><span class="dot" style="background:#1F3864"></span>Perbandingan Anggaran vs Realisasi</h3>
+    <div class="prog-row">
+      <div class="prog-lbl"><span>&#127807; Bahan Pangan</span><span>91.59% &mdash; Rp 2,085 M / Rp 2,276 M</span></div>
+      <div class="prog-bar"><div class="prog-fill" style="width:91.59%;background:linear-gradient(90deg,#ED7D31,#F4B942)"></div></div>
     </div>
-
-    <div class="kpi-card blue">
-      <div class="kpi-icon">📊</div>
-      <div class="kpi-label">Total Terserap</div>
-      <div class="kpi-value">Rp 3,199 M</div>
-      <div class="kpi-sub">Rp 3.198.897.541</div>
-      <span class="kpi-badge good">91.73% dari anggaran</span>
+    <div class="prog-row">
+      <div class="prog-lbl"><span>&#9881; Operasional</span><span>92.00% &mdash; Rp 1,114 M / Rp 1,211 M</span></div>
+      <div class="prog-bar"><div class="prog-fill" style="width:92%;background:linear-gradient(90deg,#0F6E8E,#2E75B6)"></div></div>
     </div>
-
-    <div class="kpi-card green">
-      <div class="kpi-icon">💵</div>
-      <div class="kpi-label">Sisa Dana</div>
-      <div class="kpi-value green">Rp 288,3 Jt</div>
-      <div class="kpi-sub">Rp 288.268.459</div>
-      <span class="kpi-badge good">8.27% efisiensi</span>
+    <div class="prog-row">
+      <div class="prog-lbl"><span>&#128202; Total Keseluruhan</span><span>91.73% &mdash; Rp 3,199 M / Rp 3,487 M</span></div>
+      <div class="prog-bar"><div class="prog-fill" style="width:91.73%;background:linear-gradient(90deg,#1F3864,#2E75B6)"></div></div>
     </div>
-
-    <div class="kpi-card orange">
-      <div class="kpi-icon">🌾</div>
-      <div class="kpi-label">Dana Pangan Terserap</div>
-      <div class="kpi-value">Rp 2,085 M</div>
-      <div class="kpi-sub">dari Rp 2.276.180.000</div>
-      <span class="kpi-badge warn">91.59%</span>
-    </div>
-
-    <div class="kpi-card teal">
-      <div class="kpi-icon">⚙️</div>
-      <div class="kpi-label">Dana Ops Terserap</div>
-      <div class="kpi-value">Rp 1,114 M</div>
-      <div class="kpi-sub">dari Rp 1.210.986.000</div>
-      <span class="kpi-badge warn">92.00%</span>
-    </div>
-
-    <div class="kpi-card purple">
-      <div class="kpi-icon">📅</div>
-      <div class="kpi-label">Hari Tercatat</div>
-      <div class="kpi-value">97 Hari</div>
-      <div class="kpi-sub">84 hari aktif input</div>
-      <span class="kpi-badge">1 Sep – 31 Des 2025</span>
-    </div>
-
-    <div class="kpi-card gold">
-      <div class="kpi-icon">✅</div>
-      <div class="kpi-label">Hari Surplus</div>
-      <div class="kpi-value green">67 Hari</div>
-      <div class="kpi-sub">Pengeluaran &lt; Pagu</div>
-      <span class="kpi-badge good">Disiplin anggaran</span>
-    </div>
-
-    <div class="kpi-card navy">
-      <div class="kpi-icon">⚠️</div>
-      <div class="kpi-label">Hari Defisit</div>
-      <div class="kpi-value red">17 Hari</div>
-      <div class="kpi-sub">Pengeluaran &gt; Pagu</div>
-      <span class="kpi-badge bad">Perlu perhatian</span>
-    </div>
-
-  </div>
-
-  <!-- ════════════════════════════════════
-       PROGRESS PENYERAPAN
-  ════════════════════════════════════ -->
-  <div class="section-title"><span>📈</span> Progress Penyerapan Anggaran</div>
-  <div class="chart-grid-2">
-
-    <div class="chart-card">
-      <h3><span class="dot" style="background:var(--navy)"></span> Perbandingan Anggaran vs Realisasi</h3>
-      <div class="prog-row">
-        <div class="prog-label"><span>🌾 Bahan Pangan</span><span>91.59% — Rp 2,085 M / Rp 2,276 M</span></div>
-        <div class="prog-bar"><div class="prog-fill" style="width:91.59%;background:linear-gradient(90deg,#ED7D31,#F4B942)"></div></div>
-      </div>
-      <div class="prog-row">
-        <div class="prog-label"><span>⚙️ Operasional</span><span>92.00% — Rp 1,114 M / Rp 1,211 M</span></div>
-        <div class="prog-bar"><div class="prog-fill" style="width:92%;background:linear-gradient(90deg,#0F6E8E,#2E75B6)"></div></div>
-      </div>
-      <div class="prog-row">
-        <div class="prog-label"><span>📊 Total Keseluruhan</span><span>91.73% — Rp 3,199 M / Rp 3,487 M</span></div>
-        <div class="prog-bar"><div class="prog-fill" style="width:91.73%;background:linear-gradient(90deg,#1F3864,#2E75B6)"></div></div>
-      </div>
-      <div class="divider" style="margin-top:18px"></div>
-      <div class="summary-strip" style="grid-template-columns:1fr 1fr;margin-top:14px;">
-        <div class="strip-item green">
-          <div class="strip-label">Avg Pengeluaran/Hari</div>
-          <div class="strip-val green">Rp 38,1 Jt</div>
-        </div>
-        <div class="strip-item">
-          <div class="strip-label">Pagu Harian</div>
-          <div class="strip-val">Rp 41,1 Jt</div>
-        </div>
-        <div class="strip-item green">
-          <div class="strip-label">Avg Pangan/Hari</div>
-          <div class="strip-val green">Rp 24,8 Jt</div>
-        </div>
-        <div class="strip-item green">
-          <div class="strip-label">Avg Ops/Hari</div>
-          <div class="strip-val green">Rp 13,3 Jt</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="chart-card">
-      <h3><span class="dot" style="background:var(--blue)"></span> Komposisi Anggaran (Donut)</h3>
-      <div class="chart-wrap" style="height:240px">
-        <canvas id="chartDonutAnggaran"></canvas>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- ════════════════════════════════════
-       LINE CHART HARIAN
-  ════════════════════════════════════ -->
-  <div class="section-title"><span>📉</span> Tren Pengeluaran Harian (Sep – Des 2025)</div>
-  <div class="chart-card">
-    <h3><span class="dot" style="background:var(--blue)"></span> Aktual Pangan & Operasional per Hari vs Pagu Harian</h3>
-    <div class="chart-wrap" style="height:320px">
-      <canvas id="chartHarian"></canvas>
+    <div class="strip">
+      <div class="si g"><div class="slbl">Avg Pengeluaran/Hari</div><div class="sval g">Rp 38,1 Jt</div></div>
+      <div class="si"><div class="slbl">Pagu Harian</div><div class="sval">Rp 41,1 Jt</div></div>
+      <div class="si g"><div class="slbl">Avg Pangan/Hari</div><div class="sval g">Rp 24,8 Jt</div></div>
+      <div class="si g"><div class="slbl">Avg Ops/Hari</div><div class="sval g">Rp 13,3 Jt</div></div>
     </div>
   </div>
-
-  <!-- ════════════════════════════════════
-       CHART BULANAN
-  ════════════════════════════════════ -->
-  <div class="section-title"><span>📆</span> Rekapitulasi Bulanan</div>
-  <div class="chart-grid-2">
-
-    <div class="chart-card">
-      <h3><span class="dot" style="background:var(--orange)"></span> Total Pengeluaran per Bulan</h3>
-      <div class="chart-wrap" style="height:280px">
-        <canvas id="chartBulanan"></canvas>
-      </div>
-    </div>
-
-    <div class="chart-card">
-      <h3><span class="dot" style="background:var(--teal)"></span> Pangan vs Operasional per Bulan</h3>
-      <div class="chart-wrap" style="height:280px">
-        <canvas id="chartBulananStacked"></canvas>
-      </div>
-    </div>
-
+  <div class="card">
+    <h3><span class="dot" style="background:#2E75B6"></span>Komposisi Anggaran</h3>
+    <div style="position:relative;height:250px"><canvas id="cDonut"></canvas></div>
   </div>
+</div>
 
-  <!-- ════════════════════════════════════
-       STATUS CHART
-  ════════════════════════════════════ -->
-  <div class="section-title"><span>🎯</span> Analisis Surplus / Defisit</div>
-  <div class="chart-grid-3">
+<!-- TREN HARIAN -->
+<div class="sec">&#128201; Tren Pengeluaran Harian (Sep &ndash; Des 2025)</div>
+<div class="card">
+  <h3><span class="dot" style="background:#2E75B6"></span>Aktual Pangan &amp; Operasional per Hari</h3>
+  <div style="position:relative;height:300px"><canvas id="cHarian"></canvas></div>
+</div>
 
-    <div class="chart-card">
-      <h3><span class="dot" style="background:var(--green)"></span> Distribusi Status Harian</h3>
-      <div class="chart-wrap" style="height:230px">
-        <canvas id="chartStatusDonut"></canvas>
-      </div>
-    </div>
+<!-- BULANAN -->
+<div class="sec">&#128198; Rekapitulasi Bulanan</div>
+<div class="g2">
+  <div class="card">
+    <h3><span class="dot" style="background:#ED7D31"></span>Total Pengeluaran per Bulan</h3>
+    <div style="position:relative;height:260px"><canvas id="cBulanan"></canvas></div>
+  </div>
+  <div class="card">
+    <h3><span class="dot" style="background:#0F6E8E"></span>Pangan vs Operasional per Bulan</h3>
+    <div style="position:relative;height:260px"><canvas id="cStacked"></canvas></div>
+  </div>
+</div>
 
-    <div class="chart-card">
-      <h3><span class="dot" style="background:var(--purple)"></span> Surplus vs Defisit per Bulan</h3>
-      <div class="chart-wrap" style="height:230px">
-        <canvas id="chartSurplusDefisit"></canvas>
-      </div>
-    </div>
+<!-- SURPLUS DEFISIT -->
+<div class="sec">&#127919; Analisis Surplus / Defisit</div>
+<div class="g3">
+  <div class="card">
+    <h3><span class="dot" style="background:#27AE60"></span>Distribusi Status Harian</h3>
+    <div style="position:relative;height:220px"><canvas id="cStatus"></canvas></div>
+  </div>
+  <div class="card">
+    <h3><span class="dot" style="background:#7030A0"></span>Hari Surplus vs Defisit per Bulan</h3>
+    <div style="position:relative;height:220px"><canvas id="cSDBln"></canvas></div>
+  </div>
+  <div class="card">
+    <h3><span class="dot" style="background:#C0392B"></span>Ringkasan Nilai Surplus &amp; Defisit</h3>
+    <table class="tbl">
+      <thead><tr><th>Metrik</th><th>Nilai</th></tr></thead>
+      <tbody>
+        <tr><td>Total Surplus (Hemat)</td><td style="color:#27AE60">Rp 696,7 Jt</td></tr>
+        <tr><td>Total Defisit (Boros)</td><td style="color:#C0392B">Rp 408,4 Jt</td></tr>
+        <tr><td>Net Surplus</td><td style="color:#27AE60">Rp 288,3 Jt</td></tr>
+        <tr><td>% Surplus dari Anggaran</td><td style="color:#27AE60">19.98%</td></tr>
+        <tr><td>% Defisit dari Anggaran</td><td style="color:#C0392B">11.71%</td></tr>
+        <tr><td>Rasio Disiplin</td><td style="color:#2E75B6">79.76%</td></tr>
+        <tr><td>Pengeluaran Tertinggi</td><td style="color:#C0392B">Rp 132,5 Jt</td></tr>
+        <tr><td>Tanggal Tertinggi</td><td>22 Nov 2025</td></tr>
+        <tr><td>Pengeluaran Terendah</td><td style="color:#27AE60">Rp 351.800</td></tr>
+        <tr><td>Tanggal Terendah</td><td>27 Des 2025</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
 
-    <div class="chart-card">
-      <h3><span class="dot" style="background:var(--red)"></span> Nilai Surplus & Defisit</h3>
-      <table class="stat-table">
-        <thead><tr><th>Metrik</th><th>Nilai</th></tr></thead>
+<!-- BREAKDOWN PANGAN vs OPS -->
+<div class="sec">&#128269; Breakdown Pangan vs Operasional</div>
+<div class="g21">
+  <div class="card">
+    <h3><span class="dot" style="background:#ED7D31"></span>Tren Mingguan: Pangan vs Operasional</h3>
+    <div style="position:relative;height:280px"><canvas id="cMingguan"></canvas></div>
+  </div>
+  <div class="card">
+    <h3><span class="dot" style="background:#0F6E8E"></span>Realisasi vs Anggaran</h3>
+    <table class="tbl">
+      <thead><tr><th>Kategori</th><th>Anggaran</th><th>Realisasi</th><th>%</th></tr></thead>
+      <tbody>
+        <tr><td>&#127807; Pangan</td><td>Rp 2.276 Jt</td><td>Rp 2.085 Jt</td><td><span class="pill s">91.59%</span></td></tr>
+        <tr><td>&#9881; Ops</td><td>Rp 1.211 Jt</td><td>Rp 1.114 Jt</td><td><span class="pill s">92.00%</span></td></tr>
+        <tr><td><b>Total</b></td><td><b>Rp 3.487 Jt</b></td><td><b>Rp 3.199 Jt</b></td><td><span class="pill s">91.73%</span></td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top:14px">
+      <h3 style="margin-bottom:10px"><span class="dot" style="background:#7030A0"></span>Pengeluaran per Periode</h3>
+      <table class="tbl">
+        <thead><tr><th>Periode</th><th>Realisasi</th></tr></thead>
         <tbody>
-          <tr><td>Total Surplus (Hemat)</td><td style="color:var(--green)">Rp 696,7 Jt</td></tr>
-          <tr><td>Total Defisit (Boros)</td><td style="color:var(--red)">Rp 408,4 Jt</td></tr>
-          <tr><td>Net Surplus</td><td style="color:var(--green)">Rp 288,3 Jt</td></tr>
-          <tr><td>% Surplus dari Anggaran</td><td style="color:var(--green)">19.98%</td></tr>
-          <tr><td>% Defisit dari Anggaran</td><td style="color:var(--red)">11.71%</td></tr>
-          <tr><td>Rasio Disiplin</td><td style="color:var(--blue)">79.76%</td></tr>
-          <tr><td>Pengeluaran Tertinggi</td><td style="color:var(--red)">Rp 132,5 Jt</td></tr>
-          <tr><td>Tanggal Tertinggi</td><td>22 Nov 2025</td></tr>
-          <tr><td>Pengeluaran Terendah</td><td style="color:var(--green)">Rp 351.800</td></tr>
-          <tr><td>Tanggal Terendah</td><td>27 Des 2025</td></tr>
+          <tr><td>01-12 Sep</td><td>Rp 352,7 Jt</td></tr>
+          <tr><td>15-26 Sep</td><td>Rp 356,2 Jt</td></tr>
+          <tr><td>29 Sep-10 Okt</td><td>Rp 372,3 Jt</td></tr>
+          <tr><td>13-24 Okt</td><td>Rp 383,2 Jt</td></tr>
+          <tr><td>27 Okt-08 Nov</td><td>Rp 470,5 Jt</td></tr>
+          <tr><td>10-22 Nov</td><td>Rp 555,9 Jt</td></tr>
+          <tr><td>24 Nov-06 Des</td><td>Rp 649,9 Jt</td></tr>
+          <tr><td>22-31 Des</td><td>Rp 57,0 Jt</td></tr>
         </tbody>
       </table>
     </div>
-
   </div>
+</div>
 
-  <!-- ════════════════════════════════════
-       BREAKDOWN PANGAN vs OPS
-  ════════════════════════════════════ -->
-  <div class="section-title"><span>🔍</span> Breakdown Pangan vs Operasional</div>
-  <div class="chart-grid-12">
+<!-- SURPLUS DEFISIT HARIAN -->
+<div class="sec">&#128200; Surplus / Defisit Harian</div>
+<div class="card">
+  <h3><span class="dot" style="background:#27AE60"></span>Surplus (+) / Defisit (-) per Hari Aktif</h3>
+  <div style="position:relative;height:280px"><canvas id="cSDHarian"></canvas></div>
+</div>
 
-    <div class="chart-card">
-      <h3><span class="dot" style="background:var(--orange)"></span> Tren Mingguan: Pangan vs Operasional</h3>
-      <div class="chart-wrap" style="height:300px">
-        <canvas id="chartMingguan"></canvas>
-      </div>
-    </div>
-
-    <div class="chart-card">
-      <h3><span class="dot" style="background:var(--teal)"></span> Realisasi vs Anggaran</h3>
-      <table class="stat-table">
-        <thead><tr><th>Kategori</th><th>Anggaran</th><th>Realisasi</th><th>%</th></tr></thead>
-        <tbody>
-          <tr>
-            <td>🌾 Pangan</td>
-            <td>Rp 2.276 Jt</td>
-            <td>Rp 2.085 Jt</td>
-            <td><span class="pill surplus">91.59%</span></td>
-          </tr>
-          <tr>
-            <td>⚙️ Ops</td>
-            <td>Rp 1.211 Jt</td>
-            <td>Rp 1.114 Jt</td>
-            <td><span class="pill surplus">92.00%</span></td>
-          </tr>
-          <tr>
-            <td><strong>Total</strong></td>
-            <td><strong>Rp 3.487 Jt</strong></td>
-            <td><strong>Rp 3.199 Jt</strong></td>
-            <td><span class="pill surplus">91.73%</span></td>
-          </tr>
-        </tbody>
-      </table>
-      <div style="margin-top:16px">
-        <h3 style="margin-bottom:12px"><span class="dot" style="background:var(--purple)"></span> Pengeluaran per Periode</h3>
-        <table class="stat-table">
-          <thead><tr><th>Periode</th><th>Realisasi</th></tr></thead>
-          <tbody>
-            <tr><td>01–12 Sep</td><td>Rp 352,7 Jt</td></tr>
-            <tr><td>15–26 Sep</td><td>Rp 356,2 Jt</td></tr>
-            <tr><td>29 Sep–10 Okt</td><td>Rp 372,3 Jt</td></tr>
-            <tr><td>13–24 Okt</td><td>Rp 383,2 Jt</td></tr>
-            <tr><td>27 Okt–08 Nov</td><td>Rp 470,5 Jt</td></tr>
-            <tr><td>10–22 Nov</td><td>Rp 555,9 Jt</td></tr>
-            <tr><td>24 Nov–06 Des</td><td>Rp 649,9 Jt</td></tr>
-            <tr><td>22–31 Des</td><td>Rp 57,0 Jt</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- ════════════════════════════════════
-       SCATTER / BUBBLE SURPLUS-DEFISIT HARIAN
-  ════════════════════════════════════ -->
-  <div class="section-title"><span>🫧</span> Surplus/Defisit Harian (Bar Chart)</div>
-  <div class="chart-card">
-    <h3><span class="dot" style="background:var(--green)"></span> Surplus (+) / Defisit (–) per Hari Aktif</h3>
-    <div class="chart-wrap" style="height:300px">
-      <canvas id="chartSurplusHarian"></canvas>
-    </div>
-  </div>
-
-  <!-- FOOTER -->
-  <div class="footer">
-    <p>📋 Dashboard Akumulasi SPPG Battuwinangun &nbsp;|&nbsp; Data: 8 file Excel Sep–Des 2025 &nbsp;|&nbsp; 97 hari tercatat, 84 hari aktif</p>
-    <p style="margin-top:4px">Total Anggaran Rp 3.487.166.000 &nbsp;·&nbsp; Terserap Rp 3.198.897.541 &nbsp;·&nbsp; Sisa Rp 288.268.459 &nbsp;·&nbsp; Penyerapan 91.73%</p>
-  </div>
-
-</div><!-- /container -->
-
-
-
+<div class="footer">
+  <p>Dashboard Akumulasi SPPG Battuwinangun | Data: 8 file Excel Sep-Des 2025 | 97 hari tercatat, 84 hari aktif</p>
+  <p style="margin-top:4px">Total Anggaran Rp 3.487.166.000 &middot; Terserap Rp 3.198.897.541 &middot; Sisa Rp 288.268.459 &middot; Penyerapan 91.73%</p>
+</div>
+</div>
 <script>
-// ═══════════════════════════════════════════════
-// DATA HARIAN (hanya hari aktif, total_aktual > 0)
-// ═══════════════════════════════════════════════
-const harian = [
+const GC = 'rgba(0,0,0,.06)';
+const fmt = v => 'Rp '+(v/1e6).toFixed(1)+' Jt';
+
+// ── DATA HARIAN ──
+const H = [
   {d:"01/09",p:31728300,o:11376000,t:43104300,sd:-2342800},
   {d:"02/09",p:29861200,o:1033500,t:30894700,sd:9866800},
   {d:"03/09",p:27381000,o:2768000,t:30149000,sd:10612500},
@@ -580,355 +296,228 @@ const harian = [
   {d:"05/12",p:101476000,o:3178000,t:104654000,sd:-58508000},
   {d:"06/12",p:16764000,o:110640000,t:127404000,sd:-81258000},
   {d:"22/12",p:10100500,o:1860000,t:11960500,sd:-2263500},
-  {d:"23/12",p:0,o:0,t:0,sd:9697000},
-  {d:"24/12",p:0,o:0,t:0,sd:9697000},
-  {d:"25/12",p:0,o:0,t:0,sd:9697000},
-  {d:"26/12",p:0,o:0,t:0,sd:9697000},
   {d:"27/12",p:0,o:351800,t:351800,sd:9345200},
   {d:"29/12",p:6296000,o:38360000,t:44656000,sd:-34959000},
-  {d:"30/12",p:0,o:0,t:0,sd:9697000},
-  {d:"31/12",p:0,o:0,t:0,sd:9697000},
+];
+const HA = H.filter(x=>x.t>0);
+
+// ── DATA BULANAN ──
+const BLN = [
+  {b:"Sep",p:338831431,o:254380192},
+  {b:"Okt",p:371221200,o:292376493},
+  {b:"Nov",p:573653400,o:462655175},
+  {b:"Des",p:252489000,o:125192350},
 ];
 
-// Hanya hari dengan pengeluaran > 0
-const harianAktif = harian.filter(x => x.t > 0);
-
-// ═══════════════════
-// DATA BULANAN
-// ═══════════════════
-const bulanan = [
-  { bln:"Sep 2025", pangan:338831431, ops:254380192, total:593211623 },
-  { bln:"Okt 2025", pangan:371221200, ops:292376493, total:663597693 },
-  { bln:"Nov 2025", pangan:573653400, ops:462655175, total:1036308575 },
-  { bln:"Des 2025", pangan:252489000, ops:125192350, total:377681350,  },
-];
-
-// Koreksi akurat dari data
-const bulananAkurat = [
-  { bln:"Sep", p:338831431, o:254380192 },
-  { bln:"Okt", p:371221200, o:292376493 },
-  { bln:"Nov", p:573653400, o:462655175 },
-  { bln:"Des", p:252489000, o:125192350 },
-];
-
-const fmt = v => 'Rp ' + (v/1e6).toFixed(1) + ' Jt';
-const fmtM = v => 'Rp ' + (v/1e9).toFixed(3) + ' M';
-
-// ═══════════════════════════════════
-// PLUGIN DATALABELS (register global)
-// ═══════════════════════════════════
-Chart.register(ChartDataLabels);
-
-const GRID_COLOR = 'rgba(0,0,0,.06)';
-const baseFont = { family: "'Segoe UI', sans-serif" };
-
-// ════════════════════════════════
-// 1. DONUT ANGGARAN
-// ════════════════════════════════
-new Chart(document.getElementById('chartDonutAnggaran'), {
-  type: 'doughnut',
-  data: {
-    labels: ['🌾 Pangan Terserap','🌾 Pangan Sisa','⚙️ Ops Terserap','⚙️ Ops Sisa'],
-    datasets: [{
-      data: [2084847831, 191332169, 1114049710, 96936290],
-      backgroundColor: ['#ED7D31','#FAD7B2','#0F6E8E','#A8D8EA'],
-      borderWidth: 2,
-      borderColor: '#fff',
-      hoverOffset: 12
-    }]
-  },
-  options: {
-    responsive: true, maintainAspectRatio: false,
-    cutout: '62%',
-    plugins: {
-      legend: { position:'right', labels:{ font:{ size:11 }, padding:10 } },
-      datalabels: {
-        color:'#fff', font:{ weight:'bold', size:11 },
-        formatter: (v) => (v/1e9*100/3.487166).toFixed(1)+'%'
-      },
-      tooltip: { callbacks: { label: ctx => ' ' + fmt(ctx.raw) } }
-    }
-  }
-});
-
-// ════════════════════════════════
-// 2. LINE CHART HARIAN
-// ════════════════════════════════
-const paguHarian = 40000000; // rata-rata pagu harian ~40jt
-new Chart(document.getElementById('chartHarian'), {
-  type: 'line',
-  data: {
-    labels: harianAktif.map(x => x.d),
-    datasets: [
-      {
-        label: '🌾 Aktual Pangan',
-        data: harianAktif.map(x => x.p),
-        borderColor: '#ED7D31', backgroundColor: 'rgba(237,125,49,.1)',
-        borderWidth: 2, pointRadius: 2, pointHoverRadius: 6,
-        tension: 0.3, fill: true
-      },
-      {
-        label: '⚙️ Aktual Ops',
-        data: harianAktif.map(x => x.o),
-        borderColor: '#0F6E8E', backgroundColor: 'rgba(15,110,142,.08)',
-        borderWidth: 2, pointRadius: 2, pointHoverRadius: 6,
-        tension: 0.3, fill: true
-      },
-      {
-        label: '📊 Total Aktual',
-        data: harianAktif.map(x => x.t),
-        borderColor: '#1F3864', backgroundColor: 'transparent',
-        borderWidth: 2.5, pointRadius: 1, pointHoverRadius: 6,
-        tension: 0.3, borderDash: [], fill: false
-      },
-    ]
-  },
-  options: {
-    responsive: true, maintainAspectRatio: false,
-    interaction: { mode:'index', intersect:false },
-    plugins: {
-      legend: { labels:{ font:baseFont, boxWidth:12, padding:14 } },
-      datalabels: { display: false },
-      tooltip: { callbacks: { label: ctx => ' ' + ctx.dataset.label + ': ' + fmt(ctx.raw) } }
-    },
-    scales: {
-      x: { ticks:{ font:{ size:9 }, maxRotation:45, autoSkip:true, maxTicksLimit:20 }, grid:{ color:GRID_COLOR } },
-      y: { ticks:{ font:{ size:10 }, callback: v => 'Rp'+(v/1e6).toFixed(0)+'Jt' }, grid:{ color:GRID_COLOR } }
-    }
-  }
-});
-
-// ════════════════════════════════
-// 3. BAR CHART BULANAN
-// ════════════════════════════════
-new Chart(document.getElementById('chartBulanan'), {
-  type: 'bar',
-  data: {
-    labels: bulananAkurat.map(x => x.bln),
-    datasets: [{
-      label: 'Total Pengeluaran',
-      data: bulananAkurat.map(x => x.p + x.o),
-      backgroundColor: ['#1F3864','#2E75B6','#ED7D31','#27AE60'],
-      borderRadius: 8, borderSkipped: false,
-    }]
-  },
-  options: {
-    responsive: true, maintainAspectRatio: false,
-    plugins: {
-      legend: { display:false },
-      datalabels: {
-        anchor:'end', align:'top', color:'#1F3864',
-        font:{ weight:'bold', size:10 },
-        formatter: v => 'Rp'+(v/1e9).toFixed(2)+'M'
-      },
-      tooltip: { callbacks: { label: ctx => ' ' + fmtM(ctx.raw) } }
-    },
-    scales: {
-      x: { grid:{ display:false } },
-      y: { ticks:{ callback: v => 'Rp'+(v/1e6).toFixed(0)+'Jt' }, grid:{ color:GRID_COLOR } }
-    }
-  }
-});
-
-// ════════════════════════════════
-// 4. STACKED BAR BULANAN
-// ════════════════════════════════
-new Chart(document.getElementById('chartBulananStacked'), {
-  type: 'bar',
-  data: {
-    labels: bulananAkurat.map(x => x.bln),
-    datasets: [
-      {
-        label: '🌾 Pangan',
-        data: bulananAkurat.map(x => x.p),
-        backgroundColor: '#ED7D31', borderRadius: 4,
-      },
-      {
-        label: '⚙️ Operasional',
-        data: bulananAkurat.map(x => x.o),
-        backgroundColor: '#0F6E8E', borderRadius: 4,
-      }
-    ]
-  },
-  options: {
-    responsive: true, maintainAspectRatio: false,
-    plugins: {
-      legend: { labels:{ font:baseFont, boxWidth:12 } },
-      datalabels: { display:false },
-      tooltip: { callbacks: { label: ctx => ' ' + ctx.dataset.label + ': ' + fmt(ctx.raw) } }
-    },
-    scales: {
-      x: { stacked:true, grid:{ display:false } },
-      y: { stacked:true, ticks:{ callback: v => 'Rp'+(v/1e6).toFixed(0)+'Jt' }, grid:{ color:GRID_COLOR } }
-    }
-  }
-});
-
-// ════════════════════════════════
-// 5. DONUT STATUS
-// ════════════════════════════════
-new Chart(document.getElementById('chartStatusDonut'), {
-  type: 'doughnut',
-  data: {
-    labels: ['✅ Surplus (67 hr)','❌ Defisit (17 hr)','⬜ Aman/Libur (13 hr)'],
-    datasets: [{
-      data: [67, 17, 13],
-      backgroundColor: ['#27AE60','#C0392B','#BDC3C7'],
-      borderWidth: 3, borderColor:'#fff', hoverOffset:10
-    }]
-  },
-  options: {
-    responsive: true, maintainAspectRatio: false,
-    cutout: '58%',
-    plugins: {
-      legend: { position:'bottom', labels:{ font:{ size:10 }, padding:8 } },
-      datalabels: {
-        color:'#fff', font:{ weight:'bold', size:12 },
-        formatter: (v,ctx) => {
-          const total = ctx.dataset.data.reduce((a,b)=>a+b,0);
-          return (v/total*100).toFixed(0)+'%';
-        }
-      }
-    }
-  }
-});
-
-// ════════════════════════════════
-// 6. SURPLUS VS DEFISIT PER BULAN
-// ════════════════════════════════
-const sdBulanan = [
-  { bln:'Sep', surplus:5, defisit:-3 },
-  { bln:'Okt', surplus:6, defisit:-4 },
-  { bln:'Nov', surplus:6, defisit:-4 },  // termasuk Nov-Des overlap
-  { bln:'Des', surplus:8, defisit:-1 },
-];
-new Chart(document.getElementById('chartSurplusDefisit'), {
-  type: 'bar',
-  data: {
-    labels: ['Sep','Okt','Nov','Des'],
-    datasets: [
-      {
-        label: '✅ Hari Surplus',
-        data: [14, 19, 20, 14],
-        backgroundColor: 'rgba(39,174,96,.8)', borderRadius:5
-      },
-      {
-        label: '❌ Hari Defisit',
-        data: [-3, -4, -5, -5],
-        backgroundColor: 'rgba(192,57,43,.8)', borderRadius:5
-      }
-    ]
-  },
-  options: {
-    responsive: true, maintainAspectRatio: false,
-    plugins: {
-      legend: { labels:{ font:baseFont, boxWidth:12 } },
-      datalabels: {
-        color: ctx => ctx.dataset.label.includes('Surplus') ? '#1a6e3b' : '#7b1e1e',
-        font:{ weight:'bold', size:10 },
-        formatter: v => Math.abs(v)
-      }
-    },
-    scales: {
-      x: { grid:{ display:false } },
-      y: {
-        ticks: { callback: v => Math.abs(v)+' hr' },
-        grid: { color:GRID_COLOR }
-      }
-    }
-  }
-});
-
-// ════════════════════════════════
-// 7. LINE CHART MINGGUAN
-// ════════════════════════════════
-const mingguanData = [];
-let week = 1;
-for(let i=0; i<harianAktif.length; i+=5) {
-  const slice = harianAktif.slice(i, i+5);
-  mingguanData.push({
-    wk: 'W'+week,
-    p: slice.reduce((a,x)=>a+x.p,0),
-    o: slice.reduce((a,x)=>a+x.o,0),
-  });
-  week++;
+// ── MINGGUAN (kelompokkan tiap 5 hari aktif) ──
+const WK = [];
+for(let i=0;i<HA.length;i+=5){
+  const s=HA.slice(i,i+5);
+  WK.push({w:'W'+(Math.floor(i/5)+1), p:s.reduce((a,x)=>a+x.p,0), o:s.reduce((a,x)=>a+x.o,0)});
 }
-new Chart(document.getElementById('chartMingguan'), {
-  type: 'line',
-  data: {
-    labels: mingguanData.map(x => x.wk),
-    datasets: [
-      {
-        label: '🌾 Pangan',
-        data: mingguanData.map(x => x.p),
-        borderColor:'#ED7D31', backgroundColor:'rgba(237,125,49,.12)',
-        borderWidth:2.5, pointRadius:4, tension:0.4, fill:true
-      },
-      {
-        label: '⚙️ Operasional',
-        data: mingguanData.map(x => x.o),
-        borderColor:'#0F6E8E', backgroundColor:'rgba(15,110,142,.10)',
-        borderWidth:2.5, pointRadius:4, tension:0.4, fill:true
-      }
-    ]
+
+// ══════════════════════════
+// 1. DONUT ANGGARAN
+// ══════════════════════════
+new Chart(document.getElementById('cDonut'),{
+  type:'doughnut',
+  data:{
+    labels:['Pangan Terserap','Pangan Sisa','Ops Terserap','Ops Sisa'],
+    datasets:[{
+      data:[2084847831,191332169,1114049710,96936290],
+      backgroundColor:['#ED7D31','#FAD7B2','#0F6E8E','#A8D8EA'],
+      borderWidth:2,borderColor:'#fff',hoverOffset:10
+    }]
   },
-  options: {
-    responsive: true, maintainAspectRatio: false,
-    interaction: { mode:'index', intersect:false },
-    plugins: {
-      legend: { labels:{ font:baseFont, boxWidth:12 } },
-      datalabels: { display:false },
-      tooltip: { callbacks: { label: ctx => ' ' + ctx.dataset.label + ': ' + fmt(ctx.raw) } }
-    },
-    scales: {
-      x: { grid:{ color:GRID_COLOR } },
-      y: { ticks:{ callback: v => 'Rp'+(v/1e6).toFixed(0)+'Jt' }, grid:{ color:GRID_COLOR } }
+  options:{
+    responsive:true,maintainAspectRatio:false,cutout:'60%',
+    plugins:{
+      legend:{position:'right',labels:{font:{size:11},padding:10}},
+      tooltip:{callbacks:{label:ctx=>' '+fmt(ctx.raw)}}
     }
   }
 });
 
-// ════════════════════════════════
-// 8. BAR SURPLUS/DEFISIT HARIAN
-// ════════════════════════════════
-const sdHarian = harianAktif.filter(x => x.sd !== 0).map(x => ({
-  d: x.d,
-  sd: x.sd
-}));
-new Chart(document.getElementById('chartSurplusHarian'), {
-  type: 'bar',
-  data: {
-    labels: sdHarian.map(x => x.d),
-    datasets: [{
-      label: 'Surplus (+) / Defisit (–)',
-      data: sdHarian.map(x => x.sd),
-      backgroundColor: sdHarian.map(x => x.sd >= 0 ? 'rgba(39,174,96,.75)' : 'rgba(192,57,43,.75)'),
-      borderColor:     sdHarian.map(x => x.sd >= 0 ? '#1a6e3b' : '#7b1e1e'),
-      borderWidth: 1,
-      borderRadius: 3,
+// ══════════════════════════
+// 2. LINE HARIAN
+// ══════════════════════════
+new Chart(document.getElementById('cHarian'),{
+  type:'line',
+  data:{
+    labels:HA.map(x=>x.d),
+    datasets:[
+      {label:'Pangan',data:HA.map(x=>x.p),borderColor:'#ED7D31',backgroundColor:'rgba(237,125,49,.1)',borderWidth:2,pointRadius:2,tension:0.3,fill:true},
+      {label:'Operasional',data:HA.map(x=>x.o),borderColor:'#0F6E8E',backgroundColor:'rgba(15,110,142,.08)',borderWidth:2,pointRadius:2,tension:0.3,fill:true},
+      {label:'Total',data:HA.map(x=>x.t),borderColor:'#1F3864',backgroundColor:'transparent',borderWidth:2.5,pointRadius:1,tension:0.3,fill:false}
+    ]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    interaction:{mode:'index',intersect:false},
+    plugins:{
+      legend:{labels:{font:{size:11},boxWidth:12,padding:12}},
+      tooltip:{callbacks:{label:ctx=>' '+ctx.dataset.label+': '+fmt(ctx.raw)}}
+    },
+    scales:{
+      x:{ticks:{font:{size:9},maxRotation:45,autoSkip:true,maxTicksLimit:22},grid:{color:GC}},
+      y:{ticks:{callback:v=>'Rp'+(v/1e6).toFixed(0)+'Jt'},grid:{color:GC}}
+    }
+  }
+});
+
+// ══════════════════════════
+// 3. BAR BULANAN
+// ══════════════════════════
+new Chart(document.getElementById('cBulanan'),{
+  type:'bar',
+  data:{
+    labels:BLN.map(x=>x.b),
+    datasets:[{
+      label:'Total',
+      data:BLN.map(x=>x.p+x.o),
+      backgroundColor:['#1F3864','#2E75B6','#ED7D31','#27AE60'],
+      borderRadius:8,borderSkipped:false
     }]
   },
-  options: {
-    responsive: true, maintainAspectRatio: false,
-    plugins: {
-      legend: { display:false },
-      datalabels: { display:false },
-      tooltip: {
-        callbacks: {
-          label: ctx => {
-            const v = ctx.raw;
-            return (v>=0 ? ' ✅ Surplus: Rp' : ' ❌ Defisit: Rp') + Math.abs(v/1e6).toFixed(1) + ' Jt';
-          }
-        }
-      }
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{
+      legend:{display:false},
+      tooltip:{callbacks:{label:ctx=>' Rp'+(ctx.raw/1e9).toFixed(3)+' M'}}
     },
-    scales: {
-      x: { ticks:{ font:{ size:8 }, maxRotation:60, autoSkip:true, maxTicksLimit:30 }, grid:{ display:false } },
-      y: {
-        ticks:{ callback: v => (v>=0?'+':'')+( v/1e6).toFixed(0)+'Jt' },
-        grid:{ color:GRID_COLOR }
-      }
+    scales:{
+      x:{grid:{display:false}},
+      y:{ticks:{callback:v=>'Rp'+(v/1e6).toFixed(0)+'Jt'},grid:{color:GC}}
+    }
+  }
+});
+
+// ══════════════════════════
+// 4. STACKED BULANAN
+// ══════════════════════════
+new Chart(document.getElementById('cStacked'),{
+  type:'bar',
+  data:{
+    labels:BLN.map(x=>x.b),
+    datasets:[
+      {label:'Pangan',data:BLN.map(x=>x.p),backgroundColor:'#ED7D31',borderRadius:4},
+      {label:'Operasional',data:BLN.map(x=>x.o),backgroundColor:'#0F6E8E',borderRadius:4}
+    ]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{
+      legend:{labels:{font:{size:11},boxWidth:12}},
+      tooltip:{callbacks:{label:ctx=>' '+ctx.dataset.label+': '+fmt(ctx.raw)}}
+    },
+    scales:{
+      x:{stacked:true,grid:{display:false}},
+      y:{stacked:true,ticks:{callback:v=>'Rp'+(v/1e6).toFixed(0)+'Jt'},grid:{color:GC}}
+    }
+  }
+});
+
+// ══════════════════════════
+// 5. DONUT STATUS
+// ══════════════════════════
+new Chart(document.getElementById('cStatus'),{
+  type:'doughnut',
+  data:{
+    labels:['Surplus (67 hr)','Defisit (17 hr)','Aman/Libur (13 hr)'],
+    datasets:[{
+      data:[67,17,13],
+      backgroundColor:['#27AE60','#C0392B','#BDC3C7'],
+      borderWidth:3,borderColor:'#fff',hoverOffset:8
+    }]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,cutout:'55%',
+    plugins:{
+      legend:{position:'bottom',labels:{font:{size:10},padding:8}},
+      tooltip:{callbacks:{label:ctx=>' '+ctx.label+': '+ctx.raw+' hari'}}
+    }
+  }
+});
+
+// ══════════════════════════
+// 6. BAR SURPLUS/DEFISIT PER BULAN
+// ══════════════════════════
+new Chart(document.getElementById('cSDBln'),{
+  type:'bar',
+  data:{
+    labels:['Sep','Okt','Nov','Des'],
+    datasets:[
+      {label:'Hari Surplus',data:[14,19,20,14],backgroundColor:'rgba(39,174,96,.8)',borderRadius:5},
+      {label:'Hari Defisit',data:[-3,-4,-5,-5],backgroundColor:'rgba(192,57,43,.8)',borderRadius:5}
+    ]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{
+      legend:{labels:{font:{size:11},boxWidth:12}},
+      tooltip:{callbacks:{label:ctx=>' '+ctx.dataset.label+': '+Math.abs(ctx.raw)+' hari'}}
+    },
+    scales:{
+      x:{grid:{display:false}},
+      y:{ticks:{callback:v=>Math.abs(v)+' hr'},grid:{color:GC}}
+    }
+  }
+});
+
+// ══════════════════════════
+// 7. LINE MINGGUAN
+// ══════════════════════════
+new Chart(document.getElementById('cMingguan'),{
+  type:'line',
+  data:{
+    labels:WK.map(x=>x.w),
+    datasets:[
+      {label:'Pangan',data:WK.map(x=>x.p),borderColor:'#ED7D31',backgroundColor:'rgba(237,125,49,.12)',borderWidth:2.5,pointRadius:4,tension:0.4,fill:true},
+      {label:'Operasional',data:WK.map(x=>x.o),borderColor:'#0F6E8E',backgroundColor:'rgba(15,110,142,.10)',borderWidth:2.5,pointRadius:4,tension:0.4,fill:true}
+    ]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    interaction:{mode:'index',intersect:false},
+    plugins:{
+      legend:{labels:{font:{size:11},boxWidth:12}},
+      tooltip:{callbacks:{label:ctx=>' '+ctx.dataset.label+': '+fmt(ctx.raw)}}
+    },
+    scales:{
+      x:{grid:{color:GC}},
+      y:{ticks:{callback:v=>'Rp'+(v/1e6).toFixed(0)+'Jt'},grid:{color:GC}}
+    }
+  }
+});
+
+// ══════════════════════════
+// 8. BAR S/D HARIAN
+// ══════════════════════════
+const sdData = H.filter(x=>x.sd!==0);
+new Chart(document.getElementById('cSDHarian'),{
+  type:'bar',
+  data:{
+    labels:sdData.map(x=>x.d),
+    datasets:[{
+      label:'Surplus/Defisit',
+      data:sdData.map(x=>x.sd),
+      backgroundColor:sdData.map(x=>x.sd>=0?'rgba(39,174,96,.75)':'rgba(192,57,43,.75)'),
+      borderColor:sdData.map(x=>x.sd>=0?'#1a6e3b':'#7b1e1e'),
+      borderWidth:1,borderRadius:3
+    }]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{
+      legend:{display:false},
+      tooltip:{callbacks:{label:ctx=>{const v=ctx.raw;return(v>=0?' Surplus: Rp':' Defisit: Rp')+Math.abs(v/1e6).toFixed(1)+' Jt';}}}
+    },
+    scales:{
+      x:{ticks:{font:{size:8},maxRotation:60,autoSkip:true,maxTicksLimit:28},grid:{display:false}},
+      y:{ticks:{callback:v=>(v>=0?'+':''+(v/1e6).toFixed(0))+'Jt'},grid:{color:GC}}
     }
   }
 });
 </script>
+</body>
 </html>
