@@ -3,189 +3,199 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Dashboard Akumulasi SPPG Battuwinangun | Sep-Des 2025</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<title>Dashboard Keuangan SPPG Battuwinangun | Sep-Des 2025</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Segoe UI',sans-serif;background:#F0F4FA;color:#222;}
-.header{background:linear-gradient(135deg,#1F3864,#2E75B6,#0F6E8E);color:#fff;padding:24px 36px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 20px rgba(31,56,100,.4);}
-.header h1{font-size:1.6rem;font-weight:800;}
-.header p{font-size:.88rem;opacity:.85;margin-top:4px;}
-.badge{background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.35);border-radius:10px;padding:10px 22px;text-align:center;}
-.badge .bval{font-size:1.7rem;font-weight:800;}
-.badge .blbl{font-size:.72rem;opacity:.8;}
-.container{max-width:1380px;margin:0 auto;padding:24px 20px 48px;}
-.sec{font-size:1rem;font-weight:700;color:#1F3864;margin:28px 0 12px;border-left:4px solid #2E75B6;padding-left:12px;display:flex;align-items:center;gap:8px;}
-.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(195px,1fr));gap:14px;margin-bottom:6px;}
-.kpi{background:#fff;border-radius:13px;padding:18px 20px 14px;box-shadow:0 2px 10px rgba(0,0,0,.07);position:relative;overflow:hidden;transition:transform .2s;}
-.kpi:hover{transform:translateY(-3px);}
-.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;}
-.kpi.c1::before{background:#1F3864;} .kpi.c2::before{background:#2E75B6;} .kpi.c3::before{background:#27AE60;}
-.kpi.c4::before{background:#ED7D31;} .kpi.c5::before{background:#0F6E8E;} .kpi.c6::before{background:#7030A0;}
-.kpi.c7::before{background:#F4B942;} .kpi.c8::before{background:#C0392B;}
-.kico{font-size:1.7rem;margin-bottom:6px;}
-.klbl{font-size:.68rem;font-weight:600;color:#6C757D;text-transform:uppercase;letter-spacing:.5px;}
-.kval{font-size:1.28rem;font-weight:800;color:#1F3864;margin-top:3px;}
-.kval.g{color:#27AE60;} .kval.r{color:#C0392B;}
-.ksub{font-size:.72rem;color:#6C757D;margin-top:4px;}
-.kbadge{display:inline-block;border-radius:20px;padding:2px 10px;font-size:.68rem;font-weight:700;margin-top:5px;background:#EEF3FB;color:#1F3864;}
-.kbadge.good{background:#e6f9ee;color:#27AE60;} .kbadge.warn{background:#fff3e0;color:#ED7D31;} .kbadge.bad{background:#fde8e8;color:#C0392B;}
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
-.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;}
-.g21{display:grid;grid-template-columns:2fr 1fr;gap:18px;}
-@media(max-width:860px){.g2,.g3,.g21{grid-template-columns:1fr;}}
-.card{background:#fff;border-radius:13px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,.07);}
-.card h3{font-size:.88rem;font-weight:700;color:#1F3864;margin-bottom:14px;display:flex;align-items:center;gap:7px;}
-.dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
-.prog-row{margin-bottom:11px;}
-.prog-lbl{display:flex;justify-content:space-between;font-size:.78rem;font-weight:600;color:#444;margin-bottom:4px;}
-.prog-bar{height:11px;background:#e8edf5;border-radius:99px;overflow:hidden;}
-.prog-fill{height:100%;border-radius:99px;}
-.tbl{width:100%;border-collapse:collapse;font-size:.8rem;}
-.tbl th{background:#1F3864;color:#fff;padding:7px 11px;text-align:left;font-weight:600;}
-.tbl td{padding:6px 11px;border-bottom:1px solid #eef1f8;}
-.tbl td:last-child{text-align:right;font-weight:700;}
-.tbl tr:hover td{background:#EEF3FB;}
-.pill{display:inline-block;border-radius:20px;padding:2px 9px;font-size:.68rem;font-weight:700;}
-.pill.s{background:#e6f9ee;color:#27AE60;} .pill.d{background:#fde8e8;color:#C0392B;}
-.strip{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;}
-.si{background:#f7f9fd;border-radius:9px;padding:12px 14px;border-left:3px solid #2E75B6;}
-.si.g{border-color:#27AE60;} .si.r{border-color:#C0392B;}
-.slbl{font-size:.67rem;font-weight:600;color:#6C757D;text-transform:uppercase;}
-.sval{font-size:1.05rem;font-weight:800;color:#1F3864;}
-.sval.g{color:#27AE60;} .sval.r{color:#C0392B;}
-.footer{text-align:center;color:#6C757D;font-size:.75rem;margin-top:36px;padding-top:18px;border-top:1px solid #dde3ef;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#F0F4FA;color:#222;min-height:100vh;}
+.hdr{background:linear-gradient(135deg,#1F3864 0%,#2E75B6 60%,#0F6E8E 100%);color:#fff;padding:22px 32px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 18px rgba(31,56,100,.45);}
+.hdr h1{font-size:1.55rem;font-weight:800;line-height:1.2;}
+.hdr p{font-size:.85rem;opacity:.85;margin-top:5px;}
+.bdg{background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.35);border-radius:12px;padding:10px 22px;text-align:center;min-width:140px;}
+.bdg .bv{font-size:1.9rem;font-weight:900;line-height:1;}
+.bdg .bl{font-size:.7rem;opacity:.8;margin-top:3px;}
+.wrap{max-width:1360px;margin:0 auto;padding:22px 18px 50px;}
+.stl{font-size:.95rem;font-weight:700;color:#1F3864;margin:26px 0 12px;padding-left:12px;border-left:4px solid #2E75B6;display:flex;align-items:center;gap:8px;}
+/* KPI */
+.kg{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:13px;margin-bottom:4px;}
+.kc{background:#fff;border-radius:12px;padding:16px 18px 13px;box-shadow:0 2px 10px rgba(0,0,0,.07);position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s;cursor:default;}
+.kc:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(0,0,0,.12);}
+.kc::after{content:'';position:absolute;top:0;left:0;right:0;height:4px;border-radius:12px 12px 0 0;}
+.k1::after{background:#1F3864;} .k2::after{background:#2E75B6;} .k3::after{background:#27AE60;}
+.k4::after{background:#ED7D31;} .k5::after{background:#0F6E8E;} .k6::after{background:#7030A0;}
+.k7::after{background:#F4B942;} .k8::after{background:#C0392B;}
+.ki{font-size:1.6rem;margin-bottom:5px;}
+.kl{font-size:.63rem;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;}
+.kv{font-size:1.2rem;font-weight:800;color:#1F3864;margin-top:2px;}
+.kv.g{color:#27AE60;} .kv.r{color:#C0392B;}
+.ks{font-size:.7rem;color:#888;margin-top:3px;}
+.kb{display:inline-block;border-radius:20px;padding:2px 9px;font-size:.65rem;font-weight:700;margin-top:5px;background:#EEF3FB;color:#1F3864;}
+.kb.ok{background:#e6f9ee;color:#27AE60;} .kb.wn{background:#fff3e0;color:#ED7D31;} .kb.er{background:#fde8e8;color:#C0392B;}
+/* GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+.g21{display:grid;grid-template-columns:2fr 1fr;gap:16px;}
+@media(max-width:820px){.g2,.g3,.g21{grid-template-columns:1fr;}}
+/* CARD */
+.cd{background:#fff;border-radius:12px;padding:18px 18px 14px;box-shadow:0 2px 10px rgba(0,0,0,.07);}
+.cd h3{font-size:.83rem;font-weight:700;color:#1F3864;margin-bottom:12px;display:flex;align-items:center;gap:7px;}
+.dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;display:inline-block;}
+/* PROGRESS */
+.pr{margin-bottom:10px;}
+.pl{display:flex;justify-content:space-between;font-size:.75rem;font-weight:600;color:#444;margin-bottom:4px;}
+.pb{height:10px;background:#e4eaf5;border-radius:99px;overflow:hidden;}
+.pf{height:100%;border-radius:99px;transition:width 1.2s ease;}
+/* TABLE */
+.tb{width:100%;border-collapse:collapse;font-size:.78rem;}
+.tb th{background:#1F3864;color:#fff;padding:7px 10px;text-align:left;font-weight:600;font-size:.76rem;}
+.tb td{padding:6px 10px;border-bottom:1px solid #eef1f8;vertical-align:middle;}
+.tb td:last-child{text-align:right;font-weight:700;}
+.tb tr:hover td{background:#f4f7fd;}
+.pl2{display:inline-block;border-radius:20px;padding:2px 8px;font-size:.65rem;font-weight:700;}
+.pl2.s{background:#e6f9ee;color:#27AE60;} .pl2.d{background:#fde8e8;color:#C0392B;}
+/* MINI CARDS */
+.mc{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:11px;}
+.mi{background:#f5f7fc;border-radius:8px;padding:10px 12px;border-left:3px solid #2E75B6;}
+.mi.g{border-color:#27AE60;} .mi.r{border-color:#C0392B;}
+.ml{font-size:.62rem;font-weight:600;color:#888;text-transform:uppercase;}
+.mv{font-size:1rem;font-weight:800;color:#1F3864;}
+.mv.g{color:#27AE60;} .mv.r{color:#C0392B;}
+/* CANVAS */
+canvas{display:block;}
+.footer{text-align:center;color:#888;font-size:.73rem;margin-top:34px;padding-top:16px;border-top:1px solid #dde3ef;}
+/* LOADING */
+#loading{position:fixed;inset:0;background:#1F3864;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;transition:opacity .5s;}
+#loading h2{color:#fff;font-size:1.4rem;margin-bottom:8px;}
+#loading p{color:rgba(255,255,255,.7);font-size:.85rem;}
+.spin{width:44px;height:44px;border:4px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;margin-bottom:18px;}
+@keyframes spin{to{transform:rotate(360deg);}}
 </style>
 </head>
 <body>
 
-<div class="header">
+<div id="loading">
+  <div class="spin"></div>
+  <h2>Memuat Dashboard...</h2>
+  <p>SPPG Battuwinangun | Sep-Des 2025</p>
+</div>
+
+<div class="hdr">
   <div>
     <h1>&#127963; Dashboard Akumulasi Laporan Keuangan</h1>
-    <p>SPPG Battuwinangun &nbsp;|&nbsp; Program Pemenuhan Gizi Nasional &nbsp;|&nbsp; 01 September &#8211; 31 Desember 2025</p>
+    <p>SPPG Battuwinangun &nbsp;&bull;&nbsp; Program Pemenuhan Gizi Nasional &nbsp;&bull;&nbsp; 01 September &ndash; 31 Desember 2025</p>
   </div>
-  <div class="badge">
-    <div class="bval">91.73%</div>
-    <div class="blbl">Total Penyerapan Anggaran</div>
+  <div class="bdg">
+    <div class="bv">91.73%</div>
+    <div class="bl">Total Penyerapan Anggaran</div>
   </div>
 </div>
 
-<div class="container">
+<div class="wrap">
 
 <!-- KPI -->
-<div class="sec">&#128176; Ringkasan Keuangan Utama</div>
-<div class="kpi-grid">
-  <div class="kpi c1"><div class="kico">&#127970;</div><div class="klbl">Total Anggaran</div><div class="kval">Rp 3,487 M</div><div class="ksub">Rp 3.487.166.000</div><span class="kbadge">Pangan + Operasional</span></div>
-  <div class="kpi c2"><div class="kico">&#128202;</div><div class="klbl">Total Terserap</div><div class="kval">Rp 3,199 M</div><div class="ksub">Rp 3.198.897.541</div><span class="kbadge good">91.73% dari anggaran</span></div>
-  <div class="kpi c3"><div class="kico">&#128181;</div><div class="klbl">Sisa Dana</div><div class="kval g">Rp 288,3 Jt</div><div class="ksub">Rp 288.268.459</div><span class="kbadge good">8.27% efisiensi</span></div>
-  <div class="kpi c4"><div class="kico">&#127807;</div><div class="klbl">Dana Pangan Terserap</div><div class="kval">Rp 2,085 M</div><div class="ksub">dari Rp 2.276.180.000</div><span class="kbadge warn">91.59%</span></div>
-  <div class="kpi c5"><div class="kico">&#9881;&#65039;</div><div class="klbl">Dana Ops Terserap</div><div class="kval">Rp 1,114 M</div><div class="ksub">dari Rp 1.210.986.000</div><span class="kbadge warn">92.00%</span></div>
-  <div class="kpi c6"><div class="kico">&#128197;</div><div class="klbl">Hari Tercatat</div><div class="kval">97 Hari</div><div class="ksub">84 hari aktif input</div><span class="kbadge">1 Sep &#8211; 31 Des 2025</span></div>
-  <div class="kpi c7"><div class="kico">&#9989;</div><div class="klbl">Hari Surplus</div><div class="kval g">67 Hari</div><div class="ksub">Pengeluaran &lt; Pagu</div><span class="kbadge good">Disiplin anggaran</span></div>
-  <div class="kpi c8"><div class="kico">&#9888;&#65039;</div><div class="klbl">Hari Defisit</div><div class="kval r">17 Hari</div><div class="ksub">Pengeluaran &gt; Pagu</div><span class="kbadge bad">Perlu perhatian</span></div>
+<div class="stl">&#128176; Ringkasan Keuangan Utama</div>
+<div class="kg">
+  <div class="kc k1"><div class="ki">&#127970;</div><div class="kl">Total Anggaran</div><div class="kv">Rp 3,487 M</div><div class="ks">Rp 3.487.166.000</div><span class="kb">Pangan + Operasional</span></div>
+  <div class="kc k2"><div class="ki">&#128202;</div><div class="kl">Total Terserap</div><div class="kv">Rp 3,199 M</div><div class="ks">Rp 3.198.897.541</div><span class="kb ok">91.73% dari anggaran</span></div>
+  <div class="kc k3"><div class="ki">&#128181;</div><div class="kl">Sisa Dana</div><div class="kv g">Rp 288,3 Jt</div><div class="ks">Rp 288.268.459</div><span class="kb ok">8.27% efisiensi</span></div>
+  <div class="kc k4"><div class="ki">&#127807;</div><div class="kl">Dana Pangan Terserap</div><div class="kv">Rp 2,085 M</div><div class="ks">dari Rp 2.276.180.000</div><span class="kb wn">91.59%</span></div>
+  <div class="kc k5"><div class="ki">&#9881;</div><div class="kl">Dana Ops Terserap</div><div class="kv">Rp 1,114 M</div><div class="ks">dari Rp 1.210.986.000</div><span class="kb wn">92.00%</span></div>
+  <div class="kc k6"><div class="ki">&#128197;</div><div class="kl">Hari Tercatat</div><div class="kv">97 Hari</div><div class="ks">84 hari aktif input</div><span class="kb">1 Sep &ndash; 31 Des 2025</span></div>
+  <div class="kc k7"><div class="ki">&#9989;</div><div class="kl">Hari Surplus</div><div class="kv g">67 Hari</div><div class="ks">Pengeluaran &lt; Pagu</div><span class="kb ok">Disiplin anggaran</span></div>
+  <div class="kc k8"><div class="ki">&#9888;</div><div class="kl">Hari Defisit</div><div class="kv r">17 Hari</div><div class="ks">Pengeluaran &gt; Pagu</div><span class="kb er">Perlu perhatian</span></div>
 </div>
 
 <!-- PROGRESS + DONUT -->
-<div class="sec">&#128200; Progress Penyerapan Anggaran</div>
+<div class="stl">&#128200; Penyerapan Anggaran</div>
 <div class="g2">
-  <div class="card">
-    <h3><span class="dot" style="background:#1F3864"></span>Perbandingan Anggaran vs Realisasi</h3>
-    <div class="prog-row">
-      <div class="prog-lbl"><span>&#127807; Bahan Pangan</span><span>91.59% &mdash; Rp 2,085 M / Rp 2,276 M</span></div>
-      <div class="prog-bar"><div class="prog-fill" style="width:91.59%;background:linear-gradient(90deg,#ED7D31,#F4B942)"></div></div>
-    </div>
-    <div class="prog-row">
-      <div class="prog-lbl"><span>&#9881; Operasional</span><span>92.00% &mdash; Rp 1,114 M / Rp 1,211 M</span></div>
-      <div class="prog-bar"><div class="prog-fill" style="width:92%;background:linear-gradient(90deg,#0F6E8E,#2E75B6)"></div></div>
-    </div>
-    <div class="prog-row">
-      <div class="prog-lbl"><span>&#128202; Total Keseluruhan</span><span>91.73% &mdash; Rp 3,199 M / Rp 3,487 M</span></div>
-      <div class="prog-bar"><div class="prog-fill" style="width:91.73%;background:linear-gradient(90deg,#1F3864,#2E75B6)"></div></div>
-    </div>
-    <div class="strip">
-      <div class="si g"><div class="slbl">Avg Pengeluaran/Hari</div><div class="sval g">Rp 38,1 Jt</div></div>
-      <div class="si"><div class="slbl">Pagu Harian</div><div class="sval">Rp 41,1 Jt</div></div>
-      <div class="si g"><div class="slbl">Avg Pangan/Hari</div><div class="sval g">Rp 24,8 Jt</div></div>
-      <div class="si g"><div class="slbl">Avg Ops/Hari</div><div class="sval g">Rp 13,3 Jt</div></div>
+  <div class="cd">
+    <h3><span class="dot" style="background:#1F3864"></span>Realisasi vs Anggaran</h3>
+    <div class="pr"><div class="pl"><span>&#127807; Bahan Pangan</span><span>91.59%</span></div><div class="pb"><div class="pf" style="width:91.59%;background:linear-gradient(90deg,#ED7D31,#F4B942)"></div></div></div>
+    <div class="pr"><div class="pl"><span>&#9881; Operasional</span><span>92.00%</span></div><div class="pb"><div class="pf" style="width:92%;background:linear-gradient(90deg,#0F6E8E,#2E75B6)"></div></div></div>
+    <div class="pr"><div class="pl"><span>&#128202; Total</span><span>91.73%</span></div><div class="pb"><div class="pf" style="width:91.73%;background:linear-gradient(90deg,#1F3864,#2E75B6)"></div></div></div>
+    <div class="mc">
+      <div class="mi g"><div class="ml">Avg Pengeluaran/Hari</div><div class="mv g">Rp 38,1 Jt</div></div>
+      <div class="mi"><div class="ml">Pagu Harian</div><div class="mv">Rp 41,1 Jt</div></div>
+      <div class="mi g"><div class="ml">Avg Pangan/Hari</div><div class="mv g">Rp 24,8 Jt</div></div>
+      <div class="mi g"><div class="ml">Avg Ops/Hari</div><div class="mv g">Rp 13,3 Jt</div></div>
     </div>
   </div>
-  <div class="card">
+  <div class="cd">
     <h3><span class="dot" style="background:#2E75B6"></span>Komposisi Anggaran</h3>
-    <div style="position:relative;height:250px"><canvas id="cDonut"></canvas></div>
+    <canvas id="cDonut" height="220"></canvas>
   </div>
 </div>
 
-<!-- TREN HARIAN -->
-<div class="sec">&#128201; Tren Pengeluaran Harian (Sep &ndash; Des 2025)</div>
-<div class="card">
-  <h3><span class="dot" style="background:#2E75B6"></span>Aktual Pangan &amp; Operasional per Hari</h3>
-  <div style="position:relative;height:300px"><canvas id="cHarian"></canvas></div>
+<!-- LINE HARIAN -->
+<div class="stl">&#128201; Tren Pengeluaran Harian</div>
+<div class="cd">
+  <h3><span class="dot" style="background:#2E75B6"></span>Aktual Pangan &amp; Operasional per Hari (Sep &ndash; Des 2025)</h3>
+  <canvas id="cHarian" height="130"></canvas>
 </div>
 
 <!-- BULANAN -->
-<div class="sec">&#128198; Rekapitulasi Bulanan</div>
+<div class="stl">&#128198; Rekapitulasi Bulanan</div>
 <div class="g2">
-  <div class="card">
+  <div class="cd">
     <h3><span class="dot" style="background:#ED7D31"></span>Total Pengeluaran per Bulan</h3>
-    <div style="position:relative;height:260px"><canvas id="cBulanan"></canvas></div>
+    <canvas id="cBulanan" height="200"></canvas>
   </div>
-  <div class="card">
+  <div class="cd">
     <h3><span class="dot" style="background:#0F6E8E"></span>Pangan vs Operasional per Bulan</h3>
-    <div style="position:relative;height:260px"><canvas id="cStacked"></canvas></div>
+    <canvas id="cStacked" height="200"></canvas>
   </div>
 </div>
 
 <!-- SURPLUS DEFISIT -->
-<div class="sec">&#127919; Analisis Surplus / Defisit</div>
+<div class="stl">&#127919; Analisis Surplus / Defisit</div>
 <div class="g3">
-  <div class="card">
+  <div class="cd">
     <h3><span class="dot" style="background:#27AE60"></span>Distribusi Status Harian</h3>
-    <div style="position:relative;height:220px"><canvas id="cStatus"></canvas></div>
+    <canvas id="cStatus" height="200"></canvas>
   </div>
-  <div class="card">
+  <div class="cd">
     <h3><span class="dot" style="background:#7030A0"></span>Hari Surplus vs Defisit per Bulan</h3>
-    <div style="position:relative;height:220px"><canvas id="cSDBln"></canvas></div>
+    <canvas id="cSDBln" height="200"></canvas>
   </div>
-  <div class="card">
-    <h3><span class="dot" style="background:#C0392B"></span>Ringkasan Nilai Surplus &amp; Defisit</h3>
-    <table class="tbl">
+  <div class="cd">
+    <h3><span class="dot" style="background:#C0392B"></span>Ringkasan Nilai</h3>
+    <table class="tb">
       <thead><tr><th>Metrik</th><th>Nilai</th></tr></thead>
       <tbody>
-        <tr><td>Total Surplus (Hemat)</td><td style="color:#27AE60">Rp 696,7 Jt</td></tr>
-        <tr><td>Total Defisit (Boros)</td><td style="color:#C0392B">Rp 408,4 Jt</td></tr>
+        <tr><td>Total Surplus</td><td style="color:#27AE60">Rp 696,7 Jt</td></tr>
+        <tr><td>Total Defisit</td><td style="color:#C0392B">Rp 408,4 Jt</td></tr>
         <tr><td>Net Surplus</td><td style="color:#27AE60">Rp 288,3 Jt</td></tr>
-        <tr><td>% Surplus dari Anggaran</td><td style="color:#27AE60">19.98%</td></tr>
-        <tr><td>% Defisit dari Anggaran</td><td style="color:#C0392B">11.71%</td></tr>
+        <tr><td>% Surplus</td><td style="color:#27AE60">19.98%</td></tr>
+        <tr><td>% Defisit</td><td style="color:#C0392B">11.71%</td></tr>
         <tr><td>Rasio Disiplin</td><td style="color:#2E75B6">79.76%</td></tr>
-        <tr><td>Pengeluaran Tertinggi</td><td style="color:#C0392B">Rp 132,5 Jt</td></tr>
-        <tr><td>Tanggal Tertinggi</td><td>22 Nov 2025</td></tr>
-        <tr><td>Pengeluaran Terendah</td><td style="color:#27AE60">Rp 351.800</td></tr>
-        <tr><td>Tanggal Terendah</td><td>27 Des 2025</td></tr>
+        <tr><td>Tertinggi/Hari</td><td style="color:#C0392B">Rp 132,5 Jt</td></tr>
+        <tr><td>Tgl Tertinggi</td><td>22 Nov 2025</td></tr>
+        <tr><td>Terendah/Hari</td><td style="color:#27AE60">Rp 351.800</td></tr>
+        <tr><td>Tgl Terendah</td><td>27 Des 2025</td></tr>
       </tbody>
     </table>
   </div>
 </div>
 
-<!-- BREAKDOWN PANGAN vs OPS -->
-<div class="sec">&#128269; Breakdown Pangan vs Operasional</div>
+<!-- MINGGUAN + TABEL -->
+<div class="stl">&#128269; Breakdown Pangan vs Operasional</div>
 <div class="g21">
-  <div class="card">
+  <div class="cd">
     <h3><span class="dot" style="background:#ED7D31"></span>Tren Mingguan: Pangan vs Operasional</h3>
-    <div style="position:relative;height:280px"><canvas id="cMingguan"></canvas></div>
+    <canvas id="cMingguan" height="180"></canvas>
   </div>
-  <div class="card">
+  <div class="cd">
     <h3><span class="dot" style="background:#0F6E8E"></span>Realisasi vs Anggaran</h3>
-    <table class="tbl">
+    <table class="tb">
       <thead><tr><th>Kategori</th><th>Anggaran</th><th>Realisasi</th><th>%</th></tr></thead>
       <tbody>
-        <tr><td>&#127807; Pangan</td><td>Rp 2.276 Jt</td><td>Rp 2.085 Jt</td><td><span class="pill s">91.59%</span></td></tr>
-        <tr><td>&#9881; Ops</td><td>Rp 1.211 Jt</td><td>Rp 1.114 Jt</td><td><span class="pill s">92.00%</span></td></tr>
-        <tr><td><b>Total</b></td><td><b>Rp 3.487 Jt</b></td><td><b>Rp 3.199 Jt</b></td><td><span class="pill s">91.73%</span></td></tr>
+        <tr><td>&#127807; Pangan</td><td>Rp 2.276 Jt</td><td>Rp 2.085 Jt</td><td><span class="pl2 s">91.59%</span></td></tr>
+        <tr><td>&#9881; Ops</td><td>Rp 1.211 Jt</td><td>Rp 1.114 Jt</td><td><span class="pl2 s">92.00%</span></td></tr>
+        <tr><td><b>Total</b></td><td><b>Rp 3.487 Jt</b></td><td><b>Rp 3.199 Jt</b></td><td><span class="pl2 s">91.73%</span></td></tr>
       </tbody>
     </table>
-    <div style="margin-top:14px">
-      <h3 style="margin-bottom:10px"><span class="dot" style="background:#7030A0"></span>Pengeluaran per Periode</h3>
-      <table class="tbl">
+    <div style="margin-top:13px">
+      <div style="font-size:.78rem;font-weight:700;color:#1F3864;margin-bottom:8px;">Pengeluaran per Periode</div>
+      <table class="tb">
         <thead><tr><th>Periode</th><th>Realisasi</th></tr></thead>
         <tbody>
           <tr><td>01-12 Sep</td><td>Rp 352,7 Jt</td></tr>
@@ -202,23 +212,253 @@ body{font-family:'Segoe UI',sans-serif;background:#F0F4FA;color:#222;}
   </div>
 </div>
 
-<!-- SURPLUS DEFISIT HARIAN -->
-<div class="sec">&#128200; Surplus / Defisit Harian</div>
-<div class="card">
+<!-- S/D HARIAN -->
+<div class="stl">&#128200; Surplus / Defisit Harian</div>
+<div class="cd">
   <h3><span class="dot" style="background:#27AE60"></span>Surplus (+) / Defisit (-) per Hari Aktif</h3>
-  <div style="position:relative;height:280px"><canvas id="cSDHarian"></canvas></div>
+  <canvas id="cSDHarian" height="120"></canvas>
 </div>
 
 <div class="footer">
-  <p>Dashboard Akumulasi SPPG Battuwinangun | Data: 8 file Excel Sep-Des 2025 | 97 hari tercatat, 84 hari aktif</p>
+  <p>Dashboard Akumulasi SPPG Battuwinangun &nbsp;&bull;&nbsp; Data: 8 file Excel Sep-Des 2025 &nbsp;&bull;&nbsp; 97 hari tercatat, 84 hari aktif</p>
   <p style="margin-top:4px">Total Anggaran Rp 3.487.166.000 &middot; Terserap Rp 3.198.897.541 &middot; Sisa Rp 288.268.459 &middot; Penyerapan 91.73%</p>
 </div>
 </div>
-<script>
-const GC = 'rgba(0,0,0,.06)';
-const fmt = v => 'Rp '+(v/1e6).toFixed(1)+' Jt';
+</body>
+</html>
 
-// ── DATA HARIAN ──
+
+<script>
+// ═══════════════════════════════════════
+// MINI CHART ENGINE (no CDN needed)
+// ═══════════════════════════════════════
+const C = {
+  gc:'rgba(0,0,0,.06)',
+  fmt:v=>'Rp '+(v/1e6).toFixed(1)+' Jt',
+  fmtM:v=>'Rp '+(v/1e9).toFixed(2)+' M',
+
+  setup(id, w, h){
+    const cv=document.getElementById(id);
+    cv.width=cv.parentElement.offsetWidth||600;
+    cv.height=h||cv.height;
+    const ctx=cv.getContext('2d');
+    ctx.clearRect(0,0,cv.width,cv.height);
+    return {cv,ctx,W:cv.width,H:cv.height};
+  },
+
+  // ── BAR CHART ──
+  bar(id, labels, datasets, opts={}){
+    const {cv,ctx,W,H}=this.setup(id);
+    const pad={t:30,r:20,b:50,l:65};
+    const cW=W-pad.l-pad.r, cH=H-pad.t-pad.b;
+    const n=labels.length;
+    const stacked=opts.stacked||false;
+
+    // calc max
+    let maxV=0,minV=0;
+    labels.forEach((_,i)=>{
+      let sum=0,neg=0;
+      datasets.forEach(d=>{
+        const v=d.data[i];
+        if(stacked){ if(v>0)sum+=v; else neg+=v; }
+        else{ if(v>maxV)maxV=v; if(v<minV)minV=v; }
+      });
+      if(stacked){ if(sum>maxV)maxV=sum; if(neg<minV)minV=neg; }
+    });
+    const range=maxV-minV||1;
+    const yScale=v=>pad.t+cH-(v-minV)/range*cH;
+
+    // grid
+    ctx.strokeStyle=this.gc; ctx.lineWidth=1;
+    for(let i=0;i<=5;i++){
+      const y=pad.t+cH/5*i;
+      ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+cW,y);ctx.stroke();
+      const val=maxV-(range/5*i);
+      ctx.fillStyle='#888';ctx.font='10px Segoe UI,Arial';ctx.textAlign='right';
+      ctx.fillText(val>=1e6?(val/1e6).toFixed(0)+'Jt':val.toFixed(0),pad.l-5,y+3);
+    }
+
+    // zero line
+    if(minV<0){
+      const zy=yScale(0);
+      ctx.strokeStyle='#aaa';ctx.setLineDash([3,3]);
+      ctx.beginPath();ctx.moveTo(pad.l,zy);ctx.lineTo(pad.l+cW,zy);ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // bars
+    const grpW=cW/n;
+    const dsCount=datasets.length;
+    labels.forEach((lbl,i)=>{
+      if(stacked){
+        let posY=yScale(0), negY=yScale(0);
+        datasets.forEach(d=>{
+          const v=d.data[i];
+          const bH=Math.abs(v)/range*cH;
+          const x=pad.l+grpW*i+grpW*.1;
+          const bW=grpW*.8;
+          ctx.fillStyle=d.color||'#2E75B6';
+          if(v>=0){ ctx.fillRect(x,posY-bH,bW,bH); posY-=bH; }
+          else{ ctx.fillRect(x,negY,bW,bH); negY+=bH; }
+        });
+      } else {
+        const bW=(grpW*.8)/dsCount;
+        datasets.forEach((d,di)=>{
+          const v=d.data[i];
+          const x=pad.l+grpW*i+grpW*.1+bW*di;
+          const y=yScale(Math.max(v,0));
+          const bH=Math.abs(v)/range*cH;
+          ctx.fillStyle=Array.isArray(d.color)?d.color[i]:(d.color||'#2E75B6');
+          ctx.beginPath();
+          const r=4;
+          if(v>=0){
+            ctx.roundRect?ctx.roundRect(x,y,bW,bH,r):ctx.rect(x,y,bW,bH);
+          } else {
+            ctx.roundRect?ctx.roundRect(x,yScale(0),bW,bH,r):ctx.rect(x,yScale(0),bW,bH);
+          }
+          ctx.fill();
+          // value label
+          if(opts.labels&&bH>14){
+            ctx.fillStyle='#fff';ctx.font='bold 9px Segoe UI,Arial';ctx.textAlign='center';
+            const lv=v>=1e6?(v/1e6).toFixed(0)+'Jt':v.toFixed(0);
+            ctx.fillText(lv,x+bW/2,v>=0?y+12:yScale(0)+12);
+          }
+        });
+      }
+      // x label
+      ctx.fillStyle='#555';ctx.font='10px Segoe UI,Arial';ctx.textAlign='center';
+      ctx.fillText(lbl,pad.l+grpW*i+grpW/2,H-10);
+    });
+
+    // legend
+    if(datasets.length>1||opts.legend){
+      let lx=pad.l;
+      datasets.forEach(d=>{
+        ctx.fillStyle=Array.isArray(d.color)?d.color[0]:d.color;
+        ctx.fillRect(lx,8,12,9);
+        ctx.fillStyle='#444';ctx.font='10px Segoe UI,Arial';ctx.textAlign='left';
+        ctx.fillText(d.label||'',lx+15,17);
+        lx+=ctx.measureText(d.label||'').width+32;
+      });
+    }
+  },
+
+  // ── LINE CHART ──
+  line(id, labels, datasets, opts={}){
+    const {cv,ctx,W,H}=this.setup(id);
+    const pad={t:28,r:20,b:50,l:65};
+    const cW=W-pad.l-pad.r, cH=H-pad.t-pad.b;
+    const n=labels.length;
+    let maxV=0,minV=Infinity;
+    datasets.forEach(d=>d.data.forEach(v=>{ if(v>maxV)maxV=v; if(v<minV)minV=v; }));
+    minV=Math.min(minV,0);
+    const range=maxV-minV||1;
+    const xS=i=>pad.l+i/(n-1)*cW;
+    const yS=v=>pad.t+cH-(v-minV)/range*cH;
+
+    // grid
+    for(let i=0;i<=5;i++){
+      const y=pad.t+cH/5*i;
+      ctx.strokeStyle=this.gc;ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+cW,y);ctx.stroke();
+      const val=maxV-(range/5*i);
+      ctx.fillStyle='#888';ctx.font='10px Segoe UI,Arial';ctx.textAlign='right';
+      ctx.fillText(val>=1e6?(val/1e6).toFixed(0)+'Jt':val.toFixed(0),pad.l-5,y+3);
+    }
+
+    // x labels (skip some)
+    const skip=Math.ceil(n/16);
+    labels.forEach((l,i)=>{ if(i%skip===0){
+      ctx.fillStyle='#666';ctx.font='9px Segoe UI,Arial';ctx.textAlign='center';
+      ctx.save();ctx.translate(xS(i),H-8);ctx.rotate(-0.5);ctx.fillText(l,0,0);ctx.restore();
+    }});
+
+    // datasets
+    datasets.forEach(d=>{
+      // fill
+      if(d.fill){
+        ctx.beginPath();
+        ctx.moveTo(xS(0),yS(d.data[0]));
+        for(let i=1;i<n;i++) ctx.lineTo(xS(i),yS(d.data[i]));
+        ctx.lineTo(xS(n-1),yS(0));ctx.lineTo(xS(0),yS(0));ctx.closePath();
+        ctx.fillStyle=d.fill;ctx.fill();
+      }
+      // line
+      ctx.beginPath();ctx.strokeStyle=d.color;ctx.lineWidth=2;ctx.lineJoin='round';
+      ctx.moveTo(xS(0),yS(d.data[0]));
+      for(let i=1;i<n;i++) ctx.lineTo(xS(i),yS(d.data[i]));
+      ctx.stroke();
+      // dots
+      d.data.forEach((v,i)=>{
+        if(i%skip===0||i===n-1){
+          ctx.beginPath();ctx.arc(xS(i),yS(v),3,0,Math.PI*2);
+          ctx.fillStyle=d.color;ctx.fill();
+        }
+      });
+    });
+
+    // legend
+    let lx=pad.l;
+    datasets.forEach(d=>{
+      ctx.strokeStyle=d.color;ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(lx,14);ctx.lineTo(lx+16,14);ctx.stroke();
+      ctx.beginPath();ctx.arc(lx+8,14,3,0,Math.PI*2);ctx.fillStyle=d.color;ctx.fill();
+      ctx.fillStyle='#444';ctx.font='10px Segoe UI,Arial';ctx.textAlign='left';
+      ctx.fillText(d.label,lx+20,18);
+      lx+=ctx.measureText(d.label).width+44;
+    });
+  },
+
+  // ── DONUT CHART ──
+  donut(id, labels, data, colors){
+    const {cv,ctx,W,H}=this.setup(id);
+    const cx=W*0.38, cy=H/2, r=Math.min(cx,cy)*0.82, ri=r*0.58;
+    const total=data.reduce((a,b)=>a+b,0);
+    let ang=-Math.PI/2;
+
+    data.forEach((v,i)=>{
+      const slice=v/total*Math.PI*2;
+      ctx.beginPath();
+      ctx.moveTo(cx,cy);
+      ctx.arc(cx,cy,r,ang,ang+slice);
+      ctx.closePath();
+      ctx.fillStyle=colors[i];
+      ctx.fill();
+      ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
+
+      // percent label
+      const mid=ang+slice/2;
+      const lx=cx+Math.cos(mid)*(r+ri)/2;
+      const ly=cy+Math.sin(mid)*(r+ri)/2;
+      if(v/total>0.06){
+        ctx.fillStyle='#fff';ctx.font='bold 11px Segoe UI,Arial';ctx.textAlign='center';
+        ctx.fillText((v/total*100).toFixed(1)+'%',lx,ly+4);
+      }
+      ang+=slice;
+    });
+
+    // hole
+    ctx.beginPath();ctx.arc(cx,cy,ri,0,Math.PI*2);
+    ctx.fillStyle='#fff';ctx.fill();
+
+    // legend
+    const lStartX=W*0.76, lStartY=cy-labels.length*12;
+    labels.forEach((l,i)=>{
+      const ly=lStartY+i*26;
+      ctx.fillStyle=colors[i];
+      ctx.beginPath();ctx.roundRect?ctx.roundRect(lStartX,ly,12,12,3):ctx.fillRect(lStartX,ly,12,12);
+      ctx.fill();
+      ctx.fillStyle='#333';ctx.font='10px Segoe UI,Arial';ctx.textAlign='left';
+      ctx.fillText(l,lStartX+16,ly+10);
+      ctx.fillStyle='#666';ctx.font='9px Segoe UI,Arial';
+      ctx.fillText(C.fmt(data[i]),lStartX+16,ly+21);
+    });
+  }
+};
+
+// ═══════════════════════════════
+// DATA
+// ═══════════════════════════════
 const H = [
   {d:"01/09",p:31728300,o:11376000,t:43104300,sd:-2342800},
   {d:"02/09",p:29861200,o:1033500,t:30894700,sd:9866800},
@@ -299,225 +539,90 @@ const H = [
   {d:"27/12",p:0,o:351800,t:351800,sd:9345200},
   {d:"29/12",p:6296000,o:38360000,t:44656000,sd:-34959000},
 ];
-const HA = H.filter(x=>x.t>0);
-
-// ── DATA BULANAN ──
-const BLN = [
+const HA=H.filter(x=>x.t>0);
+const BLN=[
   {b:"Sep",p:338831431,o:254380192},
   {b:"Okt",p:371221200,o:292376493},
   {b:"Nov",p:573653400,o:462655175},
   {b:"Des",p:252489000,o:125192350},
 ];
-
-// ── MINGGUAN (kelompokkan tiap 5 hari aktif) ──
-const WK = [];
+const WK=[];
 for(let i=0;i<HA.length;i+=5){
   const s=HA.slice(i,i+5);
-  WK.push({w:'W'+(Math.floor(i/5)+1), p:s.reduce((a,x)=>a+x.p,0), o:s.reduce((a,x)=>a+x.o,0)});
+  WK.push({w:'W'+(Math.floor(i/5)+1),p:s.reduce((a,x)=>a+x.p,0),o:s.reduce((a,x)=>a+x.o,0)});
 }
 
-// ══════════════════════════
-// 1. DONUT ANGGARAN
-// ══════════════════════════
-new Chart(document.getElementById('cDonut'),{
-  type:'doughnut',
-  data:{
-    labels:['Pangan Terserap','Pangan Sisa','Ops Terserap','Ops Sisa'],
-    datasets:[{
-      data:[2084847831,191332169,1114049710,96936290],
-      backgroundColor:['#ED7D31','#FAD7B2','#0F6E8E','#A8D8EA'],
-      borderWidth:2,borderColor:'#fff',hoverOffset:10
-    }]
-  },
-  options:{
-    responsive:true,maintainAspectRatio:false,cutout:'60%',
-    plugins:{
-      legend:{position:'right',labels:{font:{size:11},padding:10}},
-      tooltip:{callbacks:{label:ctx=>' '+fmt(ctx.raw)}}
-    }
-  }
+// ═══════════════════════════════
+// RENDER SEMUA CHART
+// ═══════════════════════════════
+window.addEventListener('load',()=>{
+  // hide loading
+  setTimeout(()=>{
+    const ld=document.getElementById('loading');
+    ld.style.opacity='0';
+    setTimeout(()=>ld.style.display='none',500);
+  },600);
+
+  // 1. Donut Anggaran
+  C.donut('cDonut',
+    ['Pangan Terserap','Pangan Sisa','Ops Terserap','Ops Sisa'],
+    [2084847831,191332169,1114049710,96936290],
+    ['#ED7D31','#FAD7B2','#0F6E8E','#A8D8EA']
+  );
+
+  // 2. Line Harian
+  C.line('cHarian',HA.map(x=>x.d),[
+    {label:'Pangan',data:HA.map(x=>x.p),color:'#ED7D31',fill:'rgba(237,125,49,.08)'},
+    {label:'Operasional',data:HA.map(x=>x.o),color:'#0F6E8E',fill:'rgba(15,110,142,.06)'},
+    {label:'Total',data:HA.map(x=>x.t),color:'#1F3864'},
+  ]);
+
+  // 3. Bar Bulanan
+  C.bar('cBulanan',BLN.map(x=>x.b),[
+    {label:'Total',data:BLN.map(x=>x.p+x.o),color:['#1F3864','#2E75B6','#ED7D31','#27AE60']}
+  ],{labels:true});
+
+  // 4. Stacked Bulanan
+  C.bar('cStacked',BLN.map(x=>x.b),[
+    {label:'Pangan',data:BLN.map(x=>x.p),color:'#ED7D31'},
+    {label:'Ops',data:BLN.map(x=>x.o),color:'#0F6E8E'},
+  ],{stacked:true});
+
+  // 5. Donut Status
+  C.donut('cStatus',
+    ['Surplus (67 hr)','Defisit (17 hr)','Aman (13 hr)'],
+    [67,17,13],
+    ['#27AE60','#C0392B','#BDC3C7']
+  );
+
+  // 6. Bar Surplus/Defisit per Bulan
+  C.bar('cSDBln',['Sep','Okt','Nov','Des'],[
+    {label:'Surplus',data:[14,19,20,14],color:'rgba(39,174,96,.85)'},
+    {label:'Defisit',data:[-3,-4,-5,-5],color:'rgba(192,57,43,.85)'},
+  ]);
+
+  // 7. Line Mingguan
+  C.line('cMingguan',WK.map(x=>x.w),[
+    {label:'Pangan',data:WK.map(x=>x.p),color:'#ED7D31',fill:'rgba(237,125,49,.1)'},
+    {label:'Ops',data:WK.map(x=>x.o),color:'#0F6E8E',fill:'rgba(15,110,142,.08)'},
+  ]);
+
+  // 8. Bar S/D Harian
+  const sdD=H.filter(x=>x.sd!==0);
+  C.bar('cSDHarian',sdD.map(x=>x.d),[
+    {label:'Surplus/Defisit',
+     data:sdD.map(x=>x.sd),
+     color:sdD.map(x=>x.sd>=0?'rgba(39,174,96,.8)':'rgba(192,57,43,.8)')}
+  ]);
 });
 
-// ══════════════════════════
-// 2. LINE HARIAN
-// ══════════════════════════
-new Chart(document.getElementById('cHarian'),{
-  type:'line',
-  data:{
-    labels:HA.map(x=>x.d),
-    datasets:[
-      {label:'Pangan',data:HA.map(x=>x.p),borderColor:'#ED7D31',backgroundColor:'rgba(237,125,49,.1)',borderWidth:2,pointRadius:2,tension:0.3,fill:true},
-      {label:'Operasional',data:HA.map(x=>x.o),borderColor:'#0F6E8E',backgroundColor:'rgba(15,110,142,.08)',borderWidth:2,pointRadius:2,tension:0.3,fill:true},
-      {label:'Total',data:HA.map(x=>x.t),borderColor:'#1F3864',backgroundColor:'transparent',borderWidth:2.5,pointRadius:1,tension:0.3,fill:false}
-    ]
-  },
-  options:{
-    responsive:true,maintainAspectRatio:false,
-    interaction:{mode:'index',intersect:false},
-    plugins:{
-      legend:{labels:{font:{size:11},boxWidth:12,padding:12}},
-      tooltip:{callbacks:{label:ctx=>' '+ctx.dataset.label+': '+fmt(ctx.raw)}}
-    },
-    scales:{
-      x:{ticks:{font:{size:9},maxRotation:45,autoSkip:true,maxTicksLimit:22},grid:{color:GC}},
-      y:{ticks:{callback:v=>'Rp'+(v/1e6).toFixed(0)+'Jt'},grid:{color:GC}}
-    }
-  }
-});
-
-// ══════════════════════════
-// 3. BAR BULANAN
-// ══════════════════════════
-new Chart(document.getElementById('cBulanan'),{
-  type:'bar',
-  data:{
-    labels:BLN.map(x=>x.b),
-    datasets:[{
-      label:'Total',
-      data:BLN.map(x=>x.p+x.o),
-      backgroundColor:['#1F3864','#2E75B6','#ED7D31','#27AE60'],
-      borderRadius:8,borderSkipped:false
-    }]
-  },
-  options:{
-    responsive:true,maintainAspectRatio:false,
-    plugins:{
-      legend:{display:false},
-      tooltip:{callbacks:{label:ctx=>' Rp'+(ctx.raw/1e9).toFixed(3)+' M'}}
-    },
-    scales:{
-      x:{grid:{display:false}},
-      y:{ticks:{callback:v=>'Rp'+(v/1e6).toFixed(0)+'Jt'},grid:{color:GC}}
-    }
-  }
-});
-
-// ══════════════════════════
-// 4. STACKED BULANAN
-// ══════════════════════════
-new Chart(document.getElementById('cStacked'),{
-  type:'bar',
-  data:{
-    labels:BLN.map(x=>x.b),
-    datasets:[
-      {label:'Pangan',data:BLN.map(x=>x.p),backgroundColor:'#ED7D31',borderRadius:4},
-      {label:'Operasional',data:BLN.map(x=>x.o),backgroundColor:'#0F6E8E',borderRadius:4}
-    ]
-  },
-  options:{
-    responsive:true,maintainAspectRatio:false,
-    plugins:{
-      legend:{labels:{font:{size:11},boxWidth:12}},
-      tooltip:{callbacks:{label:ctx=>' '+ctx.dataset.label+': '+fmt(ctx.raw)}}
-    },
-    scales:{
-      x:{stacked:true,grid:{display:false}},
-      y:{stacked:true,ticks:{callback:v=>'Rp'+(v/1e6).toFixed(0)+'Jt'},grid:{color:GC}}
-    }
-  }
-});
-
-// ══════════════════════════
-// 5. DONUT STATUS
-// ══════════════════════════
-new Chart(document.getElementById('cStatus'),{
-  type:'doughnut',
-  data:{
-    labels:['Surplus (67 hr)','Defisit (17 hr)','Aman/Libur (13 hr)'],
-    datasets:[{
-      data:[67,17,13],
-      backgroundColor:['#27AE60','#C0392B','#BDC3C7'],
-      borderWidth:3,borderColor:'#fff',hoverOffset:8
-    }]
-  },
-  options:{
-    responsive:true,maintainAspectRatio:false,cutout:'55%',
-    plugins:{
-      legend:{position:'bottom',labels:{font:{size:10},padding:8}},
-      tooltip:{callbacks:{label:ctx=>' '+ctx.label+': '+ctx.raw+' hari'}}
-    }
-  }
-});
-
-// ══════════════════════════
-// 6. BAR SURPLUS/DEFISIT PER BULAN
-// ══════════════════════════
-new Chart(document.getElementById('cSDBln'),{
-  type:'bar',
-  data:{
-    labels:['Sep','Okt','Nov','Des'],
-    datasets:[
-      {label:'Hari Surplus',data:[14,19,20,14],backgroundColor:'rgba(39,174,96,.8)',borderRadius:5},
-      {label:'Hari Defisit',data:[-3,-4,-5,-5],backgroundColor:'rgba(192,57,43,.8)',borderRadius:5}
-    ]
-  },
-  options:{
-    responsive:true,maintainAspectRatio:false,
-    plugins:{
-      legend:{labels:{font:{size:11},boxWidth:12}},
-      tooltip:{callbacks:{label:ctx=>' '+ctx.dataset.label+': '+Math.abs(ctx.raw)+' hari'}}
-    },
-    scales:{
-      x:{grid:{display:false}},
-      y:{ticks:{callback:v=>Math.abs(v)+' hr'},grid:{color:GC}}
-    }
-  }
-});
-
-// ══════════════════════════
-// 7. LINE MINGGUAN
-// ══════════════════════════
-new Chart(document.getElementById('cMingguan'),{
-  type:'line',
-  data:{
-    labels:WK.map(x=>x.w),
-    datasets:[
-      {label:'Pangan',data:WK.map(x=>x.p),borderColor:'#ED7D31',backgroundColor:'rgba(237,125,49,.12)',borderWidth:2.5,pointRadius:4,tension:0.4,fill:true},
-      {label:'Operasional',data:WK.map(x=>x.o),borderColor:'#0F6E8E',backgroundColor:'rgba(15,110,142,.10)',borderWidth:2.5,pointRadius:4,tension:0.4,fill:true}
-    ]
-  },
-  options:{
-    responsive:true,maintainAspectRatio:false,
-    interaction:{mode:'index',intersect:false},
-    plugins:{
-      legend:{labels:{font:{size:11},boxWidth:12}},
-      tooltip:{callbacks:{label:ctx=>' '+ctx.dataset.label+': '+fmt(ctx.raw)}}
-    },
-    scales:{
-      x:{grid:{color:GC}},
-      y:{ticks:{callback:v=>'Rp'+(v/1e6).toFixed(0)+'Jt'},grid:{color:GC}}
-    }
-  }
-});
-
-// ══════════════════════════
-// 8. BAR S/D HARIAN
-// ══════════════════════════
-const sdData = H.filter(x=>x.sd!==0);
-new Chart(document.getElementById('cSDHarian'),{
-  type:'bar',
-  data:{
-    labels:sdData.map(x=>x.d),
-    datasets:[{
-      label:'Surplus/Defisit',
-      data:sdData.map(x=>x.sd),
-      backgroundColor:sdData.map(x=>x.sd>=0?'rgba(39,174,96,.75)':'rgba(192,57,43,.75)'),
-      borderColor:sdData.map(x=>x.sd>=0?'#1a6e3b':'#7b1e1e'),
-      borderWidth:1,borderRadius:3
-    }]
-  },
-  options:{
-    responsive:true,maintainAspectRatio:false,
-    plugins:{
-      legend:{display:false},
-      tooltip:{callbacks:{label:ctx=>{const v=ctx.raw;return(v>=0?' Surplus: Rp':' Defisit: Rp')+Math.abs(v/1e6).toFixed(1)+' Jt';}}}
-    },
-    scales:{
-      x:{ticks:{font:{size:8},maxRotation:60,autoSkip:true,maxTicksLimit:28},grid:{display:false}},
-      y:{ticks:{callback:v=>(v>=0?'+':''+(v/1e6).toFixed(0))+'Jt'},grid:{color:GC}}
-    }
-  }
+// redraw on resize
+window.addEventListener('resize',()=>{
+  const ids=['cDonut','cHarian','cBulanan','cStacked','cStatus','cSDBln','cMingguan','cSDHarian'];
+  ids.forEach(id=>{ const cv=document.getElementById(id); if(cv) cv.width=0; });
+  window.dispatchEvent(new Event('load'));
 });
 </script>
+
 </body>
 </html>
