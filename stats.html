@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Statistik Pengunjung | SPPG Battuwinangun</title>
+<!-- GoatCounter Analytics -->
+<script data-goatcounter="https://sppgbattuwinangun.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#F0F4FA;color:#222;min-height:100vh;}
+
+/* HEADER */
+.hdr{background:linear-gradient(135deg,#1F3864 0%,#2E75B6 60%,#0F6E8E 100%);color:#fff;padding:22px 32px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 18px rgba(31,56,100,.45);}
+.hdr h1{font-size:1.4rem;font-weight:800;}
+.hdr p{font-size:.83rem;opacity:.85;margin-top:4px;}
+.back-btn{background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.35);border-radius:8px;padding:8px 18px;color:#fff;text-decoration:none;font-size:.82rem;font-weight:600;display:flex;align-items:center;gap:6px;transition:background .2s;white-space:nowrap;}
+.back-btn:hover{background:rgba(255,255,255,.28);}
+
+.wrap{max-width:1100px;margin:0 auto;padding:28px 18px 50px;}
+
+/* NOTICE BOX */
+.notice{background:#fff;border-radius:12px;padding:20px 24px;box-shadow:0 2px 10px rgba(0,0,0,.07);margin-bottom:24px;border-left:4px solid #2E75B6;}
+.notice h3{font-size:.95rem;font-weight:700;color:#1F3864;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.notice p{font-size:.82rem;color:#555;line-height:1.6;}
+.notice a{color:#2E75B6;font-weight:600;text-decoration:none;}
+.notice a:hover{text-decoration:underline;}
+
+/* STATS EMBED */
+.stats-container{background:#fff;border-radius:12px;padding:24px;box-shadow:0 2px 10px rgba(0,0,0,.07);margin-bottom:20px;}
+.stats-container h3{font-size:.95rem;font-weight:700;color:#1F3864;margin-bottom:16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #eef1f8;padding-bottom:12px;}
+
+/* IFRAME STATS */
+.gc-frame{width:100%;border:none;border-radius:8px;background:#fafbff;min-height:500px;}
+
+/* MANUAL STATS GRID */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:24px;}
+.stat-card{background:#fff;border-radius:12px;padding:18px 20px;box-shadow:0 2px 10px rgba(0,0,0,.07);text-align:center;border-top:4px solid #2E75B6;}
+.stat-card.c1{border-color:#1F3864;}
+.stat-card.c2{border-color:#27AE60;}
+.stat-card.c3{border-color:#ED7D31;}
+.stat-card.c4{border-color:#7030A0;}
+.stat-num{font-size:2rem;font-weight:900;color:#1F3864;line-height:1;}
+.stat-lbl{font-size:.72rem;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-top:6px;}
+.stat-sub{font-size:.75rem;color:#aaa;margin-top:4px;}
+
+/* SETUP GUIDE */
+.guide{background:#fff;border-radius:12px;padding:22px 24px;box-shadow:0 2px 10px rgba(0,0,0,.07);}
+.guide h3{font-size:.95rem;font-weight:700;color:#1F3864;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.step{display:flex;gap:14px;margin-bottom:16px;align-items:flex-start;}
+.step-num{background:#1F3864;color:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:800;flex-shrink:0;margin-top:2px;}
+.step-content h4{font-size:.85rem;font-weight:700;color:#1F3864;margin-bottom:4px;}
+.step-content p{font-size:.8rem;color:#555;line-height:1.5;}
+.step-content a{color:#2E75B6;font-weight:600;text-decoration:none;}
+.step-content a:hover{text-decoration:underline;}
+.code{background:#f0f4fa;border-radius:6px;padding:8px 12px;font-family:monospace;font-size:.78rem;color:#1F3864;margin-top:6px;word-break:break-all;border-left:3px solid #2E75B6;}
+
+/* LIVE COUNTER widget */
+.live-box{background:linear-gradient(135deg,#1F3864,#2E75B6);border-radius:12px;padding:24px;color:#fff;text-align:center;margin-bottom:24px;}
+.live-box h3{font-size:1rem;font-weight:700;opacity:.9;margin-bottom:12px;}
+.live-box .big{font-size:3rem;font-weight:900;line-height:1;}
+.live-box .sub{font-size:.8rem;opacity:.75;margin-top:6px;}
+.live-box .note{font-size:.72rem;opacity:.6;margin-top:10px;}
+#visitorCount{display:inline-block;}
+.pulse{display:inline-block;width:10px;height:10px;background:#4ade80;border-radius:50%;margin-right:6px;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(1.3);}}
+
+.tab-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+.tab{padding:7px 16px;border-radius:8px;font-size:.8rem;font-weight:600;cursor:pointer;border:1.5px solid #dde3ef;background:#fff;color:#555;transition:all .2s;}
+.tab.active{background:#1F3864;color:#fff;border-color:#1F3864;}
+.tab:hover:not(.active){background:#EEF3FB;color:#1F3864;}
+
+.footer{text-align:center;color:#aaa;font-size:.72rem;margin-top:32px;padding-top:16px;border-top:1px solid #dde3ef;}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div>
+    <h1>&#128200; Statistik Pengunjung Dashboard</h1>
+    <p>SPPG Battuwinangun &nbsp;&bull;&nbsp; Powered by GoatCounter Analytics</p>
+  </div>
+  <a href="dashboard.html" class="back-btn">&#8592; Kembali ke Dashboard</a>
+</div>
+
+<div class="wrap">
+
+  <!-- LIVE BOX -->
+  <div class="live-box">
+    <h3><span class="pulse"></span> Live Visitor Counter</h3>
+    <div class="big" id="visitorCount">&#128100;</div>
+    <div class="sub">Total kunjungan terekam oleh GoatCounter</div>
+    <div class="note">Data diperbarui setiap kali halaman dimuat &bull; Tidak menggunakan cookie</div>
+  </div>
+
+  <!-- NOTICE -->
+  <div class="notice">
+    <h3>&#8505;&#65039; Cara Membaca Statistik</h3>
+    <p>
+      Dashboard ini menggunakan <strong>GoatCounter</strong> — layanan analytics gratis, open source, tanpa cookie, dan ramah privasi.
+      Untuk melihat data lengkap (grafik harian, negara pengunjung, browser, halaman terpopuler),
+      <strong><a href="https://sppgbattuwinangun.goatcounter.com" target="_blank">klik di sini untuk buka panel GoatCounter &#8599;</a></strong>
+    </p>
+  </div>
+
+  <!-- STATS CARDS -->
+  <div class="stat-grid">
+    <div class="stat-card c1">
+      <div class="stat-num" id="sc-total">—</div>
+      <div class="stat-lbl">Total Pageviews</div>
+      <div class="stat-sub">Semua waktu</div>
+    </div>
+    <div class="stat-card c2">
+      <div class="stat-num" id="sc-today">—</div>
+      <div class="stat-lbl">Hari Ini</div>
+      <div class="stat-sub">Pageviews hari ini</div>
+    </div>
+    <div class="stat-card c3">
+      <div class="stat-num" id="sc-week">—</div>
+      <div class="stat-lbl">7 Hari Terakhir</div>
+      <div class="stat-sub">Pageviews minggu ini</div>
+    </div>
+    <div class="stat-card c4">
+      <div class="stat-num" id="sc-uniq">—</div>
+      <div class="stat-lbl">Unique Visitors</div>
+      <div class="stat-sub">Estimasi pengunjung unik</div>
+    </div>
+  </div>
+
+  <!-- PANEL UTAMA -->
+  <div class="stats-container">
+    <h3>&#128202; Panel Analytics Lengkap</h3>
+    <div class="tab-bar">
+      <div class="tab active" onclick="showPanel('goatcounter')">&#127760; GoatCounter Dashboard</div>
+      <div class="tab" onclick="showPanel('setup')">&#9881;&#65039; Setup Guide</div>
+    </div>
+
+    <!-- PANEL 1: GoatCounter embed -->
+    <div id="panel-goatcounter">
+      <p style="font-size:.82rem;color:#555;margin-bottom:12px;">
+        Panel di bawah menampilkan statistik langsung dari GoatCounter.
+        Jika tidak tampil, klik tombol <strong>"Buka di Tab Baru"</strong>.
+      </p>
+      <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+        <a href="https://sppgbattuwinangun.goatcounter.com" target="_blank"
+           style="background:#1F3864;color:#fff;padding:8px 18px;border-radius:8px;text-decoration:none;font-size:.82rem;font-weight:600;display:inline-flex;align-items:center;gap:6px;">
+          &#127760; Buka Panel GoatCounter &#8599;
+        </a>
+        <a href="https://sppgbattuwinangun.goatcounter.com/api/v0/stats/total" target="_blank"
+           style="background:#27AE60;color:#fff;padding:8px 18px;border-radius:8px;text-decoration:none;font-size:.82rem;font-weight:600;display:inline-flex;align-items:center;gap:6px;">
+          &#128202; Raw API Data &#8599;
+        </a>
+      </div>
+
+      <!-- Grafik mini pakai GoatCounter public badge -->
+      <div style="background:#f7f9fd;border-radius:10px;padding:20px;text-align:center;">
+        <p style="font-size:.82rem;color:#888;margin-bottom:14px;">Badge pengunjung otomatis dari GoatCounter:</p>
+        <a href="https://sppgbattuwinangun.goatcounter.com">
+          <img src="https://sppgbattuwinangun.goatcounter.com/count?p=/dashboard.html"
+               alt="Visitor count"
+               style="border-radius:6px;max-width:100%;"
+               onerror="this.parentElement.innerHTML='<p style=\'color:#aaa;font-size:.8rem\'>Badge akan aktif setelah GoatCounter didaftarkan &amp; ada kunjungan pertama.</p>'"
+          />
+        </a>
+        <p style="font-size:.75rem;color:#aaa;margin-top:10px;">
+          Badge ini menampilkan jumlah total pageviews pada halaman /dashboard.html
+        </p>
+      </div>
+    </div>
+
+    <!-- PANEL 2: Setup Guide -->
+    <div id="panel-setup" style="display:none;">
+      <div class="guide">
+        <h3>&#128640; Setup GoatCounter (Gratis, 5 Menit)</h3>
+
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>Daftar GoatCounter</h4>
+            <p>Buka <a href="https://www.goatcounter.com/signup" target="_blank">goatcounter.com/signup &#8599;</a> dan daftar gratis. Gunakan <strong>code: sppgbattuwinangun</strong> agar URL-nya sesuai.</p>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>Konfirmasi Email</h4>
+            <p>Cek email dan klik link konfirmasi. Setelah login, dashboard GoatCounter Anda ada di:</p>
+            <div class="code">https://sppgbattuwinangun.goatcounter.com</div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h4>Tracking Sudah Terpasang &#9989;</h4>
+            <p>Script tracking sudah otomatis terpasang di <strong>dashboard.html</strong> dan <strong>stats.html</strong>. Script ini:</p>
+            <div class="code">&lt;script data-goatcounter="https://sppgbattuwinangun.goatcounter.com/count" async src="//gc.zgo.at/count.js"&gt;&lt;/script&gt;</div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <h4>Lihat Data Pengunjung</h4>
+            <p>Setelah ada kunjungan, data akan muncul di panel GoatCounter. Anda bisa lihat:</p>
+            <ul style="font-size:.8rem;color:#555;margin-top:6px;padding-left:16px;line-height:2;">
+              <li>Jumlah pageviews per hari/minggu/bulan</li>
+              <li>Halaman yang paling banyak dikunjungi</li>
+              <li>Negara asal pengunjung</li>
+              <li>Browser &amp; sistem operasi</li>
+              <li>Referrer (dari mana pengunjung datang)</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-num">5</div>
+          <div class="step-content">
+            <h4>Alternatif: Tambah Domain GitHub Pages</h4>
+            <p>Di GoatCounter Settings, tambahkan domain Anda:</p>
+            <div class="code">sppgbattuwinangun-lang.github.io</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INFO PRIVASI -->
+  <div class="notice" style="border-color:#27AE60;">
+    <h3>&#9989; Privasi &amp; Keamanan Data</h3>
+    <p>
+      GoatCounter <strong>tidak menggunakan cookie</strong>, tidak melacak pengguna lintas situs, dan tidak menjual data.
+      Data yang dikumpulkan hanya: halaman yang dikunjungi, waktu kunjungan, browser, sistem operasi, dan negara.
+      Semua data bersifat anonim dan agregat &mdash; tidak ada data pribadi yang disimpan.
+    </p>
+  </div>
+
+  <div class="footer">
+    <p>Statistik Pengunjung SPPG Battuwinangun &nbsp;&bull;&nbsp; Powered by <a href="https://www.goatcounter.com" target="_blank" style="color:#2E75B6;">GoatCounter</a> &nbsp;&bull;&nbsp; Open Source &amp; Privacy Friendly</p>
+  </div>
+
+</div>
+
+<script>
+// ── TAB SWITCHER ──
+function showPanel(name) {
+  document.getElementById('panel-goatcounter').style.display = name==='goatcounter' ? 'block' : 'none';
+  document.getElementById('panel-setup').style.display = name==='setup' ? 'block' : 'none';
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    t.classList.toggle('active', (i===0&&name==='goatcounter')||(i===1&&name==='setup'));
+  });
+}
+
+// ── FETCH STATS VIA GOATCOUNTER API ──
+// GoatCounter public API (tidak butuh auth untuk site public)
+async function loadStats() {
+  const base = 'https://sppgbattuwinangun.goatcounter.com/api/v0';
+
+  // Coba fetch total stats
+  try {
+    const r = await fetch(base + '/stats/total', {
+      headers: { 'Content-Type': 'application/json' }
+    });
+    if (r.ok) {
+      const d = await r.json();
+      if (d.total !== undefined) {
+        document.getElementById('sc-total').textContent = d.total.toLocaleString('id-ID');
+        document.getElementById('visitorCount').textContent = d.total.toLocaleString('id-ID');
+      }
+      if (d.total_unique !== undefined) {
+        document.getElementById('sc-uniq').textContent = d.total_unique.toLocaleString('id-ID');
+      }
+    }
+  } catch(e) {
+    // API mungkin belum aktif
+    document.getElementById('visitorCount').innerHTML = '&#128100; Aktifkan GoatCounter';
+  }
+
+  // Coba fetch stats hari ini
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const r2 = await fetch(`${base}/stats/hits?start=${today}&end=${today}`);
+    if (r2.ok) {
+      const d2 = await r2.json();
+      const todayCount = (d2.hits||[]).reduce((a,h)=>a+(h.count||0),0);
+      document.getElementById('sc-today').textContent = todayCount.toLocaleString('id-ID');
+    }
+  } catch(e) {}
+
+  // 7 hari terakhir
+  try {
+    const end = new Date().toISOString().split('T')[0];
+    const start = new Date(Date.now()-7*86400000).toISOString().split('T')[0];
+    const r3 = await fetch(`${base}/stats/hits?start=${start}&end=${end}`);
+    if (r3.ok) {
+      const d3 = await r3.json();
+      const weekCount = (d3.hits||[]).reduce((a,h)=>a+(h.count||0),0);
+      document.getElementById('sc-week').textContent = weekCount.toLocaleString('id-ID');
+    }
+  } catch(e) {}
+}
+
+// Jalankan saat load
+window.addEventListener('load', () => {
+  // Set placeholder dulu
+  ['sc-total','sc-today','sc-week','sc-uniq'].forEach(id => {
+    if(document.getElementById(id).textContent === '—') {
+      document.getElementById(id).innerHTML = '<span style="font-size:1rem;color:#ccc">Memuat...</span>';
+    }
+  });
+  loadStats();
+});
+</script>
+</body>
+</html>
